@@ -4,8 +4,22 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import { useVehicleContext } from "../contexts/VehicalContext";
 import { toast } from "react-toastify";
+import { useMutation } from "@tanstack/react-query";
+import { punchIn } from "../services/apiPunch";
 
 export default function PunchIn() {
+  const mutation = useMutation({
+    mutationFn: punchIn,
+    onSuccess: () => {
+      toast.success("Punch In Successful!");
+      
+      reset();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const { setOwnVehicle } = useVehicleContext();
 
   const {
@@ -23,14 +37,13 @@ export default function PunchIn() {
   const image = watch("image");
 
   const onSubmit = (data) => {
-    const hasVehicle = data.ownVehicle === "yes";
-    setOwnVehicle(hasVehicle);
+    mutation.mutate({
+      own_vehicle: data.ownVehicle === "yes",
+      vehicle_type: data.vehicleType || null,
+      odometer_reading: data.odometer || null,
+    });
 
-    //console.log(data);
-    //const image = data.image?.[0];
-    //console.log(image);
-    toast.success("Punchin Successfull!");
-    reset();
+    setOwnVehicle(data.ownVehicle === "yes");
   };
 
   return (
@@ -106,9 +119,9 @@ export default function PunchIn() {
             type="submit"
             variation="primary"
             size="md"
-            disabled={!isValid}
+            disabled={!isValid || mutation.isPending}
           >
-            Punch In
+            {mutation.isPending ? "Punching..." : "Punch In"}
           </Button>
         </Form>
       </Card>

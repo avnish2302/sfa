@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import styled from "styled-components";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
-import ShopName from "../../components/ShopName";
 import { toast } from "react-toastify";
 
 export default function Promotions() {
@@ -21,8 +20,6 @@ export default function Promotions() {
 
   return (
     <>
-      <ShopName />
-
       <Card width="100rem">
         <Title>Promotions</Title>
 

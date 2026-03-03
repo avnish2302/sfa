@@ -2,12 +2,9 @@ import { useForm } from "react-hook-form";
 import styled from "styled-components";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
-import ShopName from "../../components/ShopName";
-import { useCashContext } from "../../contexts/CashContext";
 import { toast } from "react-toastify";
 
 export default function Collection() {
-  const { addCash } = useCashContext();
   const {
     register,
     handleSubmit,
@@ -19,7 +16,6 @@ export default function Collection() {
   const file = watch("image");
 
   const onSubmit = (data) => {
-    addCash(data.amount);
     console.log(data);
     const image = data.image?.[0];
     console.log(image);
@@ -31,8 +27,6 @@ export default function Collection() {
 
   return (
     <>
-      <ShopName />
-
       <Card width="100rem">
         <Form onSubmit={handleSubmit(onSubmit)}>
           <Title>Collection</Title>

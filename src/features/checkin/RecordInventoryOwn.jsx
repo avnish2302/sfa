@@ -1,31 +1,61 @@
+import { useState } from "react";
 import styled from "styled-components";
-import ShopName from "../../components/ShopName";
+import { toast } from "react-toastify";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
-import { useRecordInventoryOwn } from "../../hooks/useRecordInventoryOwn";
 import RecordInventoryOwnTable from "./RecordInventoryOwnTable";
 import RecordInventoryOwnAddedTable from "./RecordInventoryOwnAddedTable";
-import { useInventoryContext } from "../../contexts/InventoryContext";
+import { useMutation } from "@tanstack/react-query";
+import { saveOwnInventory } from "../../services/apiInventory";
 
-export default function RecordInventoryOwn() {
-  const own = useRecordInventoryOwn();
-  const {calculateAndSetInventory} = useInventoryContext()
+
+export default function RecordInventoryOwn({checkinId}) {
+  const [rows, setRows] = useState([]);
+  const [saved, setSaved] = useState([]);
+
+  const inventoryMutation = useMutation({
+  mutationFn: saveOwnInventory,
+  onSuccess: () => {
+    toast.success("Saved Successfully");
+    setSaved([]);
+  },
+  onError: (error) => {
+    toast.error(error.message);
+  },
+});
+
+  const handleAddToSaved = () => {
+    if (rows.length === 0) return;
+    setSaved([...saved, ...rows]);
+    setRows([]);
+  };
+
+  const handleSaveToDB = () => {
+  if (!checkinId) {
+    toast.error("No active check-in");
+    return;
+  }
+  inventoryMutation.mutate({
+    checkinId,
+    items: saved,
+  });
+};
 
   return (
     <Wrapper>
-      <ShopName />
-      <Gap/>
-
       <Card width="100rem">
         <Section>
-          <RecordInventoryOwnTable own={own} />
+          <RecordInventoryOwnTable
+            rows={rows}
+            setRows={setRows}
+          />
 
           <Center>
             <Button
               variation="primary"
               size="md"
-              onClick={own.handleAdd}
-              disabled={!own.isValid}
+              onClick={handleAddToSaved}
+              disabled={rows.length === 0}
             >
               Add
             </Button>
@@ -33,18 +63,19 @@ export default function RecordInventoryOwn() {
         </Section>
       </Card>
 
-      {own.saved.length > 0 && (
+      {saved.length > 0 && (
         <Card width="100rem">
           <Section>
-            <RecordInventoryOwnAddedTable own={own} />
+            <RecordInventoryOwnAddedTable
+              saved={saved}
+              setSaved={setSaved}
+            />
 
             <Center>
               <Button
                 variation="primary"
                 size="md"
-                onClick={()=>{own.handleSaveToDB()
-                  calculateAndSetInventory(own.saved)
-                }}
+                onClick={handleSaveToDB}
               >
                 Save
               </Button>
@@ -76,6 +107,5 @@ const Center = styled.div`
 `;
 
 const Gap = styled.div`
-margin-bottom : 26px;
-
-`
+  margin-bottom: 26px;
+`;

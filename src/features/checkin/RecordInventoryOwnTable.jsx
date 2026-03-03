@@ -1,54 +1,100 @@
+import { useState } from "react";
 import styled from "styled-components";
 import Button from "../../components/Button";
+import { useQuery } from "@tanstack/react-query";
+import { getProducts, getCategories } from "../../services/apiProducts";
 
-export default function RecordInventoryOwnTable({ own }) {
+export default function RecordInventoryOwnTable({ rows, setRows }) {
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ["products"],
+    queryFn: getProducts,
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
+
+  const emptyRow = {
+    receipt: "",
+    casesWarm: "",
+    casesCold: "",
+    bottlesWarm: "",
+    bottlesCold: "",
+    product_id: "",
+  };
+
+  const [category, setCategory] = useState("");
+  const [product, setProduct] = useState("");
+
+  const filteredProducts = category
+    ? products.filter((p) => p.category === category)
+    : [];
+
+  /* ---------- LOCAL HANDLERS ---------- */
+
+  const handleAddRow = () => {
+    if (!category || !product) return;
+    setRows([...rows, { ...emptyRow, product_id: product }]);
+  };
+
+  const handleDeleteRow = (i) => {
+    setRows(rows.filter((_, idx) => idx !== i));
+  };
+
+  const handleChange = (i, field, value) => {
+    const updated = [...rows];
+    updated[i][field] = value === "" ? "" : Number(value);
+    setRows(updated);
+  };
+
   return (
     <Wrapper>
       {/* CATEGORY */}
-      <Select
-        value={own.category}
-        onChange={(e) => own.setCategory(e.target.value)}
-      >
+      <Select value={category} onChange={(e) => setCategory(e.target.value)}>
         <option value="">Select Category</option>
-        <option>Beer</option>
-        <option>Whisky</option>
+        {categories.map((c) => (
+          <option key={c.category} value={c.category}>
+            {c.category}
+          </option>
+        ))}
       </Select>
 
       {/* PRODUCT + ADD ROW */}
       <RowWrapper>
-        <Select
-          value={own.product}
-          onChange={(e) => own.setProduct(e.target.value)}
-        >
+        <Select value={product} onChange={(e) => setProduct(e.target.value)}>
           <option value="">Select Product</option>
-          <option>Kibba 650 ml</option>
-          <option>Kibba 500</option>
+          {!isLoading &&
+            filteredProducts.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
         </Select>
 
         <Button
-          variant="neutral"
+          variation="neutral"
           size="md"
-          onClick={own.handleAddRow}
-          disabled={!own.category || !own.product}
+          onClick={handleAddRow}
+          disabled={!category || !product}
         >
           Add Row
         </Button>
       </RowWrapper>
 
-      {/* INPUT TABLE */}
-      {own.rows.length > 0 && (
+      {/* TABLE */}
+      {rows.length > 0 && (
         <TableWrapper>
           <StyledTable>
             <thead>
-              <tr className="header-row">
+              <tr>
                 <Th>Product</Th>
                 <Th>Receipt</Th>
                 <Th colSpan="2">Cases</Th>
                 <Th colSpan="2">Bottles</Th>
                 <Th>Action</Th>
               </tr>
-
-              <tr className="sub-header-row">
+              <tr>
                 <Th>—</Th>
                 <Th>—</Th>
                 <Th>Warm</Th>
@@ -60,23 +106,31 @@ export default function RecordInventoryOwnTable({ own }) {
             </thead>
 
             <tbody>
-              {own.rows.map((r, i) => (
+              {rows.map((r, i) => (
                 <tr key={i}>
-                  <Td>{r.product}</Td>
-                  {["receipt", "casesWarm", "casesCold", "bottlesWarm", "bottlesCold"].map((field) => (
+                  <Td>{products.find((p) => p.id === r.product_id)?.name}</Td>
+
+                  {[
+                    "receipt",
+                    "casesWarm",
+                    "casesCold",
+                    "bottlesWarm",
+                    "bottlesCold",
+                  ].map((field) => (
                     <Td key={field}>
                       <Input
                         type="number"
                         value={r[field]}
-                        onChange={(e) => own.handleChange(i, field, e.target.value)}
+                        onChange={(e) => handleChange(i, field, e.target.value)}
                       />
                     </Td>
                   ))}
+
                   <Td>
                     <Button
                       variation="delete"
                       size="sm"
-                      onClick={() => own.handleDeleteRow(i)}
+                      onClick={() => handleDeleteRow(i)}
                     >
                       Delete
                     </Button>

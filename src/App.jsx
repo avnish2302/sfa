@@ -14,46 +14,41 @@ import GlobalStyles from "./styles/GlobalStyles";
 import PunchOut from "./pages/PunchOut";
 import { VehicleProvider } from "./contexts/VehicalContext";
 import Routes from "./pages/Routes";
-import { CashProvider } from "./contexts/CashContext";
-import { InventoryProvider } from "./contexts/InventoryContext";
-import { ShopProvider } from "./contexts/ShopContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function App() {
+  const queryClient = new QueryClient();
   return (
     <>
       <GlobalStyles />
-      <ToastContainer position="top-right" autoClose={3000} />
-      <ShopProvider>
-        <InventoryProvider>
-          <CashProvider>
-            <VehicleProvider>
-              <BrowserRouter>
-                <BrowserRouterRoutes>
-                  <Route path="/" element={<Login />} />
-                  <Route element={<MainLayout />}>
-                    <Route
-                      path="/checkin"
-                      element={<Navigate to="/checkin/main" replace />}
-                    />
-                    <Route path="/checkin/:tab" element={<CheckIn/>}/>
-                    <Route path="/checkout" element={<CheckOut/>}/>
-                    <Route path="/inventory" element={<Inventory />}/>
-                    <Route path="/punchin" element={<PunchIn/>}/>
-                    <Route path="/punchout" element={<PunchOut/>}/>
-                    <Route
-                      path="/routes"
-                      element={<Navigate to="/routes/self" replace/>}
-                    />
-                    <Route path="/routes/:tab" element={<Routes/>}/>
-                  </Route>
-                </BrowserRouterRoutes>
-              </BrowserRouter>
-            </VehicleProvider>
-          </CashProvider>
-        </InventoryProvider>
-      </ShopProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastContainer position="top-right" autoClose={3000} />
+              <VehicleProvider>
+                <BrowserRouter>
+                  <BrowserRouterRoutes>
+                    <Route path="/" element={<Login />} />
+                    <Route element={<MainLayout />}>
+                      <Route
+                        path="/checkin"
+                        element={<Navigate to="/checkin/main" replace />}
+                      />
+                      <Route path="/checkin/:tab" element={<CheckIn />} />
+                      <Route path="/checkout" element={<CheckOut />} />
+                      <Route path="/inventory" element={<Inventory />} />
+                      <Route path="/punchin" element={<PunchIn />} />
+                      <Route path="/punchout" element={<PunchOut />} />
+                      <Route
+                        path="/routes"
+                        element={<Navigate to="/routes/self" replace />}
+                      />
+                      <Route path="/routes/:tab" element={<Routes />} />
+                    </Route>
+                  </BrowserRouterRoutes>
+                </BrowserRouter>
+              </VehicleProvider>
+      </QueryClientProvider>
     </>
   );
 }

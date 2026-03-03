@@ -1,81 +1,108 @@
+import { useState } from "react";
 import styled from "styled-components";
 import Button from "../../components/Button";
 
-export default function RecordInventoryOwnAddedTable({ own }) {
+export default function RecordInventoryOwnAddedTable({
+  saved,
+  setSaved,
+}) {
+  const [editIndex, setEditIndex] = useState(null);
+
+  /* ---------- LOCAL HANDLERS ---------- */
+
+  const handleSavedChange = (i, field, value) => {
+    const updated = [...saved];
+    updated[i][field] = value === "" ? "" : Number(value);
+    setSaved(updated);
+  };
+
+  const handleDeleteSaved = (i) => {
+    setSaved(saved.filter((_, idx) => idx !== i));
+  };
+
+  const handleSaveEdit = () => {
+    setEditIndex(null);
+  };
+
+  if (saved.length === 0) return null;
+
   return (
     <Wrapper>
-      {/* INPUT TABLE */}
-      {own.saved.length > 0 && (
-        <TableWrapper>
-          <StyledTable>
-            <thead>
-              <tr>
-                <Th>Product</Th>
-                <Th>Receipt</Th>
-                <Th>Cases Warm</Th>
-                <Th>Cases Cold</Th>
-                <Th>Bottles Warm</Th>
-                <Th>Bottles Cold</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
+      <TableWrapper>
+        <StyledTable>
+          <thead>
+            <tr>
+              <Th>Product</Th>
+              <Th>Receipt</Th>
+              <Th>Cases Warm</Th>
+              <Th>Cases Cold</Th>
+              <Th>Bottles Warm</Th>
+              <Th>Bottles Cold</Th>
+              <Th>Actions</Th>
+            </tr>
+          </thead>
 
-            <tbody>
-              {own.saved.map((r, i) => (
-                <tr key={i}>
-                  <Td>{r.product}</Td>
+          <tbody>
+            {saved.map((r, i) => (
+              <tr key={i}>
+                <Td>{r.product}</Td>
 
-                  {["receipt", "casesWarm", "casesCold", "bottlesWarm", "bottlesCold"].map((field) => (
-                    <Td key={field}>
-                      {own.editIndex === i ? (
-                        <Input
-                          type="number"
-                          value={r[field]}
-                          onChange={(e) =>
-                            own.handleSavedChange(i, field, e.target.value)
-                          }
-                        />
-                      ) : (
-                        r[field]
-                      )}
-                    </Td>
-                  ))}
+                {[
+                  "receipt",
+                  "casesWarm",
+                  "casesCold",
+                  "bottlesWarm",
+                  "bottlesCold",
+                ].map((field) => (
+                  <Td key={field}>
+                    {editIndex === i ? (
+                      <Input
+                        type="number"
+                        value={r[field]}
+                        onChange={(e) =>
+                          handleSavedChange(i, field, e.target.value)
+                        }
+                      />
+                    ) : (
+                      r[field]
+                    )}
+                  </Td>
+                ))}
 
-                  <Td>
-                    <Actions>
-
-                    {own.editIndex === i ? (
+                <Td>
+                  <Actions>
+                    {editIndex === i ? (
                       <Button
-                      variation="saveEdit"
-                      size="sm"
-                      onClick={own.handleSaveEdit}
+                        variation="saveEdit"
+                        size="sm"
+                        onClick={handleSaveEdit}
                       >
                         Save Edit
                       </Button>
                     ) : (
                       <Button
-                      variation="edit"
-                      size="sm"
-                      onClick={() => own.setEditIndex(i)}
+                        variation="edit"
+                        size="sm"
+                        onClick={() => setEditIndex(i)}
                       >
                         Edit
                       </Button>
                     )}
+
                     <Button
                       variation="delete"
                       size="sm"
-                      onClick={() => own.handleDeleteSaved(i)}
-                      >
+                      onClick={() => handleDeleteSaved(i)}
+                    >
                       Delete
                     </Button>
-                      </Actions>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </StyledTable>
-        </TableWrapper>
-      )}
+                  </Actions>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </StyledTable>
+      </TableWrapper>
     </Wrapper>
   );
 }

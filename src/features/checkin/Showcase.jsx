@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import ShopName from "../../components/ShopName";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { useShowcase } from "../../hooks/useShowcase";
@@ -12,7 +11,6 @@ export default function Showcase() {
 
   return (
     <Wrapper>
-      <ShopName />
       <AddRowButton onClick={showcase.addRow} />
 
       <Card width="100rem">

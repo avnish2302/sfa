@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import Button from "../../components/Button";
-import ShopName from "../../components/ShopName";
 import Card from "../../components/Card";
 import styled from "styled-components";
 import { toast } from "react-toastify";
@@ -24,7 +23,6 @@ export default function Main() {
 
   return (
     <div>
-      <ShopName className="mb-3"/>
       <Gap/>
       <Card width="100rem">
         <Form onSubmit={handleSubmit(onSubmit)}>

@@ -3,26 +3,22 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import styled from "styled-components";
 import { useVehicleContext } from "../contexts/VehicalContext";
-import { useState, useEffect } from "react";
-import { useShopContext } from "../contexts/ShopContext";
-import { useInventoryContext } from "../contexts/InventoryContext";
-import { useCashContext } from "../contexts/CashContext";
 import { toast } from "react-toastify";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getPunchSummary, punchOut } from "../services/apiPunch";
+import { useState, useEffect } from "react";
 
 export default function PunchOut() {
   const { ownVehicle } = useVehicleContext();
-  const { shopsVisited, shopsPending } = useShopContext();
-   const { cashCollected } = useCashContext();
-    const { totalInventory } = useInventoryContext();
 
-  const [currentTime, setCurrentTime] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
+  const {
+    data: summary,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["punchSummary"],
+    queryFn: getPunchSummary,
+  });
 
   const {
     register,
@@ -35,14 +31,39 @@ export default function PunchOut() {
     shouldUnregister: true,
   });
 
+  const punchOutMutation = useMutation({
+    mutationFn: punchOut,
+    onSuccess: () => {
+      toast.success("Punch Out Successful!");
+      reset();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   const image = watch("image");
 
   const onSubmit = (data) => {
-    console.log(data);
-    console.log(data.image?.[0]);
-    toast.success("Saved successfully!");
-    reset();
+    punchOutMutation.mutate({
+      end_odometer_reading: ownVehicle ? Number(data.odometer) : null,
+      shops_visited: summary?.shopsVisited ?? 0,
+      shops_pending: summary?.shopsPending ?? 0,
+    });
   };
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrentTime(new Date());
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, []);
+
+  if (isLoading) return <p>Loading summary...</p>;
+  if (isError) return <p>Failed to load summary</p>;
 
   return (
     <Wrapper>
@@ -59,17 +80,17 @@ export default function PunchOut() {
             <h2>Activity Summary</h2>
             <Grid>
               <GridItem>Entered Inventory</GridItem>
-              <GridItem>: {totalInventory}</GridItem>
+              <GridItem>: {summary?.totalInventory}</GridItem>
               <GridItem>Collected Cash</GridItem>
-              <GridItem>: {cashCollected} Rs</GridItem>
+              <GridItem>: {summary?.cashCollected} Rs</GridItem>
               <GridItem>Promotion Given</GridItem>
               <GridItem>: </GridItem>
               <GridItem>Distance covered</GridItem>
               <GridItem>: </GridItem>
               <GridItem>Shops Visited</GridItem>
-              <GridItem>: {shopsVisited}</GridItem>
+              <GridItem>: {summary?.shopsVisited}</GridItem>
               <GridItem>Shops not visited</GridItem>
-              <GridItem>: {shopsPending}</GridItem>
+              <GridItem>: {summary?.shopsPending}</GridItem>
             </Grid>
           </Section>
 
@@ -83,7 +104,9 @@ export default function PunchOut() {
                     required: "Odometer reading is required",
                   })}
                 />
-                {errors.odometer && <Error>{errors.odometer.message}</Error>}
+                {errors.odometer && (
+                  <ErrorText>{errors.odometer.message}</ErrorText>
+                )}
               </Field>
 
               <Field>
@@ -143,7 +166,6 @@ const Section = styled.section`
     margin-bottom: 1.2rem;
     text-decoration: underline;
   }
-    
 `;
 
 const Grid = styled.div`
@@ -155,7 +177,6 @@ const Grid = styled.div`
 const GridItem = styled.div`
   font-size: 1.8rem;
   color: var(--color-brown-600);
- 
 `;
 
 const Field = styled.div`
@@ -182,7 +203,7 @@ const UploadButton = styled.label`
   cursor: pointer;
   background-color: var(--color-grey-200);
   padding: 0.8rem 1.4rem;
-   font-size: 1.3rem;
+  font-size: 1.3rem;
   border-radius: var(--radius-sm);
   width: fit-content;
 
@@ -196,7 +217,7 @@ const FileName = styled.span`
   color: var(--color-brown-600);
 `;
 
-const Error = styled.span`
+const ErrorText = styled.span`
   font-size: 1.2rem;
   color: #dc2626;
 `;

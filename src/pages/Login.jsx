@@ -1,16 +1,62 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Card from "../components/Card";
 import Button from "../components/Button";
+import { toast } from "react-toastify";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // Store token
+      localStorage.setItem("token", data.token);
+
+      toast.success("Login successful");
+
+      // Redirect to PunchIn page
+      navigate("/punchin");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   return (
     <Page>
       <Card>
         <Content>
-        <Heading>Login</Heading>
-        <Input placeholder="Email" />
-        <Input type="password" placeholder="Password" />
-        <Button variation="primary" size="lg">Login</Button>
+          <Heading>Login</Heading>
+          <Input
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button variation="primary" size="lg" onClick={handleLogin}>
+            Login
+          </Button>
         </Content>
       </Card>
     </Page>
@@ -18,9 +64,9 @@ export default function Login() {
 }
 
 const Content = styled.div`
-display : flex;
-flex-direction : column;
-`
+  display: flex;
+  flex-direction: column;
+`;
 
 const Page = styled.div`
   height: 100vh;

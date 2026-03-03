@@ -1,16 +1,15 @@
-import { useState } from "react";
+
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 
 export default function MainLayout() {
-  const [isOpen, setIsOpen] = useState(true); // Sidebar state
 
   return (
     <Layout>
       <SidebarWrapper>
-        <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+        <Sidebar/>
       </SidebarWrapper>
 
       <ContentWrapper>
@@ -23,9 +22,6 @@ export default function MainLayout() {
   );
 }
 
-/* ===============================
-   Styled Components
-================================ */
 
 const Layout = styled.div`
   display: flex;

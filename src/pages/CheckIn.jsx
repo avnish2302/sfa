@@ -8,15 +8,36 @@ import Promotions from "../features/checkin/Promotions";
 import Collection from "../features/checkin/Collection";
 import AssetAssignment from "../features/checkin/AssetAssignment";
 import Main from "../features/checkin/Main";
+import ShopName from "../components/ShopName";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { createCheckin } from "../services/apiCheckin";
+import Button from "../components/Button";
 
 export default function CheckIn() {
+  const checkinMutation = useMutation({
+    mutationFn: createCheckin,
+    onSuccess: (data) => {
+      setCheckinId(data.checkin_id);
+    },
+  });
+
   const navigate = useNavigate();
-  const { tab = "basic" } = useParams();
+  const { tab = "main" } = useParams();
+  const [selectedShop, setSelectedShop] = useState("");
+  const [checkinId, setCheckinId] = useState(null);
+
+  const handleShopSelect = (shopId) => {
+    setSelectedShop(shopId);
+  };
 
   const tabs = [
     { key: "main", label: "Main" },
     { key: "record-inventory-own", label: "Record Inventory Own" },
-    { key: "record-inventory-competitor", label: "Record Inventory Competitor" },
+    {
+      key: "record-inventory-competitor",
+      label: "Record Inventory Competitor",
+    },
     { key: "showcase", label: "Showcase" },
     { key: "menu", label: "Menu" },
     { key: "asset-assignment", label: "Asset Assignment" },
@@ -27,7 +48,23 @@ export default function CheckIn() {
   return (
     <Wrapper>
       <Title>Check-In</Title>
+      <Row>
+  <ShopName
+    selectedShop={selectedShop}
+    setSelectedShop={handleShopSelect}
+  />
 
+  <Button
+   variation="primary"
+   size="md"
+    disabled={!selectedShop || checkinMutation.isPending}
+    onClick={() =>
+      checkinMutation.mutate({ shop_id: selectedShop })
+    }
+  >
+    {checkinMutation.isPending ? "Checking in..." : "Check-In"}
+  </Button>
+</Row>
       <Tabs>
         {tabs.map((t) => (
           <TabButton
@@ -41,20 +78,21 @@ export default function CheckIn() {
         ))}
       </Tabs>
 
-    
-        {tab === "main" && <Main/>}
-        {tab === "record-inventory-own" && <RecordInventoryOwn />}
-        {tab === "record-inventory-competitor" && <RecordInventoryCompetitor />}
-        {tab === "showcase" && <ShowCase />}
-        {tab === "menu" && <Menu />}
-        {tab === "asset-assignment" && <AssetAssignment />}
-        {tab === "promotions" && <Promotions />}
-        {tab === "collection" && <Collection />}
-    
+      {tab === "main" && <Main checkinId={checkinId} />}
+      {tab === "record-inventory-own" && (
+        <RecordInventoryOwn checkinId={checkinId} />
+      )}
+      {tab === "record-inventory-competitor" && (
+        <RecordInventoryCompetitor checkinId={checkinId} />
+      )}
+      {tab === "showcase" && <ShowCase checkinId={checkinId} />}
+      {tab === "menu" && <Menu checkinId={checkinId} />}
+      {tab === "asset-assignment" && <AssetAssignment checkinId={checkinId} />}
+      {tab === "promotions" && <Promotions checkinId={checkinId} />}
+      {tab === "collection" && <Collection checkinId={checkinId} />}
     </Wrapper>
   );
 }
-
 
 const Wrapper = styled.div`
   display: flex;
@@ -98,4 +136,8 @@ const TabButton = styled.button`
   }
 `;
 
-
+const Row = styled.div`
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+`;

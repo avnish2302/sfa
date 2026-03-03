@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import ShopName from "../../components/ShopName";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { useAssetAssignment } from "../../hooks/useAssetAssignment";
@@ -14,7 +13,6 @@ export default function AssetAssignment() {
     <Wrapper>
        <HeaderRow>
     <span>Assets being assigned to :</span>
-    <ShopName />
   </HeaderRow>
     <AddRowButton onClick={asset.addRow} />
 

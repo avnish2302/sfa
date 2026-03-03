@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import ShopName from "../../components/ShopName";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { useRecordInventoryCompetitor } from "../../hooks/useRecordInventoryCompetitor";
@@ -12,7 +11,6 @@ export default function RecordInventoryCompetitor() {
 
   return (
     <Wrapper>
-      <ShopName />
       <AddRowButton onClick={inventoryCompetitor.addRow} />
 
       <Card width="100rem">

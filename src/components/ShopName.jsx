@@ -1,19 +1,36 @@
 import styled from "styled-components";
+import { useShops } from "../hooks/useShops";
 
-export default function ShopName() {
+export default function ShopName({ selectedShop, setSelectedShop }) {
+  const { data: shops, isLoading, isError } = useShops();
+
+  if (isLoading) return <p>Loading shops...</p>;
+  if (isError) return <p>Failed to load shops</p>;
+
   return (
-    <ShopNameWrapper>
-      <ShopNameText>(Shop name here...)</ShopNameText>
-    </ShopNameWrapper>
+    <Wrapper>
+      <Select
+        value={selectedShop}
+        onChange={(e) => setSelectedShop(e.target.value)}
+      >
+        <option value="">Select Shop</option>
+        {shops.map((shop) => (
+          <option key={shop.id} value={shop.id}>
+            {shop.shop_name}
+          </option>
+        ))}
+      </Select>
+    </Wrapper>
   );
 }
 
-/* Styled Components */
-const ShopNameWrapper = styled.p`
-  color: var(--text-primary);
-  
+/* Styled */
+const Wrapper = styled.div`
+  width: 100%;
 `;
 
-const ShopNameText = styled.span`
-  color: var(--text-primary);
+const Select = styled.select`
+  padding: 0.8rem 1.2rem;
+  width: 100%;
+  border: 1px solid var(--border-color);
 `;

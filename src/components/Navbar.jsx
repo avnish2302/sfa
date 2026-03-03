@@ -1,11 +1,18 @@
 import styled from "styled-components";
 import Button from "./Button";
+import { useUser } from "../hooks/useUser";
 
 export default function Navbar() {
+const {data : user, isLoading, isError} = useUser()
+
   return (
     <Styledheader>
       <Heading>SFA System</Heading>
       <ActionContainer>
+         {!isLoading && !isError && user && (
+          <Username>{user.name}</Username>
+        )}
+     
         <Button variation="delete" size="sm">
           Logout
         </Button>
@@ -33,4 +40,9 @@ const ActionContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem; /* Adds space between the mode toggle and logout button */
+`;
+
+const Username = styled.span`
+  font-size: 1.4rem;
+  color: var(--text-primary);
 `;

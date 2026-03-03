@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import ShopName from "../../components/ShopName";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { useMenu } from "../../hooks/useMenu";
@@ -12,7 +11,6 @@ export default function Menu() {
 
   return (
     <Wrapper>
-      <ShopName />
       <AddRowButton onClick={menu.addRow} />
 
       <Card width="100rem">

@@ -1,21 +1,10 @@
-import { useState } from "react";
 import ShopName from "../components/ShopName";
 import Button from "../components/Button";
 import Card from "../components/Card"; // Importing Card Component
 import styled from "styled-components";
-import { useCashContext } from "../contexts/CashContext";
-import { useInventoryContext } from "../contexts/InventoryContext";
-import { useShopContext } from "../contexts/ShopContext";
 import { toast } from "react-toastify";
 
 export default function CheckOut() {
-  const { cashCollected } = useCashContext();
-  const { totalInventory } = useInventoryContext();
-  const { shopsVisited, shopsPending, updateShops } = useShopContext();
-
-  /* ---------- CALCULATIONS ---------- */
-
-  /* ---------- SAVE ---------- */
 
   const handleSave = () => {
     toast.success("Saved successfully!");
@@ -31,9 +20,9 @@ export default function CheckOut() {
           <h2>Activity Summary</h2>
           <Grid>
             <GridItem>Entered Inventory</GridItem>
-            <GridItem>: {totalInventory}</GridItem>
+            <GridItem>: 0 </GridItem>
             <GridItem>Collected Cash</GridItem>
-            <GridItem>: {cashCollected} Rs</GridItem>
+            <GridItem>: 0 Rs</GridItem>
             <GridItem>Promotion Given</GridItem>
             <GridItem>: </GridItem>
           </Grid>
@@ -52,8 +41,6 @@ export default function CheckOut() {
             <Input
               type="number"
               min="0"
-              value={shopsVisited}
-              onChange={(e) => updateShops(e.target.value, shopsPending)}
             />
           </Stat>
 
@@ -62,8 +49,6 @@ export default function CheckOut() {
             <Input
               type="number"
               min="0"
-              value={shopsPending}
-              onChange={(e) => updateShops(shopsVisited, e.target.value)}
             />
           </Stat>
         </ShopStats>
