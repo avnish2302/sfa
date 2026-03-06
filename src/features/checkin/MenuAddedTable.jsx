@@ -1,8 +1,27 @@
 import Table from "../../components/Table";
 import Button from "../../components/Button";
 import styled from "styled-components";
+import { useState } from "react";
 
-export default function MenuAddedTable({ menu }) {
+export default function MenuAddedTable({ saved, setSaved }) {
+  const [editIndex, setEditIndex] = useState(null);
+
+  const formatPrice = (value) => value.replace(/[^0-9.]/g, "");
+
+  const handleSavedChange = (i, key, value) => {
+    const copy = [...saved];
+    if (key === "price") {
+      value = formatPrice(value);
+    }
+    copy[i][key] = value;
+    setSaved(copy);
+  };
+
+  const handleDeleteSaved = (i) =>
+    setSaved(saved.filter((_, idx) => idx !== i));
+
+  const handleSaveEdit = () => setEditIndex(null);
+
   return (
     <Table>
       <Table.Header>
@@ -14,15 +33,15 @@ export default function MenuAddedTable({ menu }) {
       </Table.Header>
 
       <Table.Body
-        data={menu.saved}
+        data={saved}
         render={(row, i) => (
           <Table.Row key={i}>
             <Table.Cell>
-              {menu.editIndex === i ? (
+              {editIndex === i ? (
                 <Table.Input
                   value={row.category}
                   onChange={(e) =>
-                    menu.handleSavedChange(i, "category", e.target.value)
+                    handleSavedChange(i, "category", e.target.value)
                   }
                 />
               ) : (
@@ -31,11 +50,11 @@ export default function MenuAddedTable({ menu }) {
             </Table.Cell>
 
             <Table.Cell>
-              {menu.editIndex === i ? (
+              {editIndex === i ? (
                 <Table.Input
                   value={row.product}
                   onChange={(e) =>
-                    menu.handleSavedChange(i, "product", e.target.value)
+                    handleSavedChange(i, "product", e.target.value)
                   }
                 />
               ) : (
@@ -44,11 +63,11 @@ export default function MenuAddedTable({ menu }) {
             </Table.Cell>
 
             <Table.Cell>
-              {menu.editIndex === i ? (
+              {editIndex === i ? (
                 <Table.Input
                   value={row.price}
                   onChange={(e) =>
-                    menu.handleSavedChange(i, "price", e.target.value)
+                    handleSavedChange(i, "price", e.target.value)
                   }
                 />
               ) : (
@@ -60,20 +79,17 @@ export default function MenuAddedTable({ menu }) {
 
             <Table.Cell>
               <Actions>
-                {menu.editIndex === i ? (
-                  <Button variation="saveEdit" onClick={menu.handleSaveEdit}>
+                {editIndex === i ? (
+                  <Button variation="saveEdit" onClick={handleSaveEdit}>
                     Save Edit
                   </Button>
                 ) : (
-                  <Button variation="edit" onClick={() => menu.setEditIndex(i)}>
+                  <Button variation="edit" onClick={() => setEditIndex(i)}>
                     Edit
                   </Button>
                 )}
 
-                <Button
-                  variation="delete"
-                  onClick={() => menu.handleDeleteSaved(i)}
-                >
+                <Button variation="delete" onClick={() => handleDeleteSaved(i)}>
                   Delete
                 </Button>
               </Actions>

@@ -1,7 +1,18 @@
 import Table from "../../components/Table"; // Import the Table component which now has all the styling for file input
 import Button from "../../components/Button";
 
-export default function ShowcaseTable({ showcase }) {
+export default function ShowcaseTable({rows, setRows, fileKey }) {
+
+  const updateRow = (index, key, value) => {
+const copy = [...rows];
+copy[index][key] = value;
+setRows(copy);
+};
+
+const deleteRow = (index) => {
+setRows(rows.filter((_, i) => i !== index));
+};
+
   return (
     <>
       <Table>
@@ -13,14 +24,14 @@ export default function ShowcaseTable({ showcase }) {
         </Table.Header>
 
         <Table.Body
-          data={showcase.rows}
+          data={rows}
           render={(row, i) => (
             <Table.Row key={i}>
               <Table.Cell>
                 <Table.Input
                   value={row.category}
                   onChange={(e) =>
-                    showcase.updateRow(i, "category", e.target.value)
+                    updateRow(i, "category", e.target.value)
                   }
                 />
               </Table.Cell>
@@ -29,7 +40,7 @@ export default function ShowcaseTable({ showcase }) {
                 <Table.Input
                   value={row.product}
                   onChange={(e) =>
-                    showcase.updateRow(i, "product", e.target.value)
+                    updateRow(i, "product", e.target.value)
                   }
                 />
               </Table.Cell>
@@ -39,10 +50,10 @@ export default function ShowcaseTable({ showcase }) {
                   <Table.FileButton>
                     Choose File
                     <Table.HiddenInput
-                      key={showcase.fileKey}
+                      key={fileKey}
                       type="file"
                       onChange={(e) =>
-                        showcase.updateRow(i, "image", e.target.files[0])
+                        updateRow(i, "image", e.target.files[0])
                       }
                     />
                   </Table.FileButton>
@@ -55,7 +66,7 @@ export default function ShowcaseTable({ showcase }) {
                       <Table.HiddenInput
                         type="file"
                         onChange={(e) =>
-                          showcase.updateRow(i, "image", e.target.files[0])
+                          updateRow(i, "image", e.target.files[0])
                         }
                       />
                     </Table.ChangeLabel>
@@ -64,7 +75,7 @@ export default function ShowcaseTable({ showcase }) {
               </Table.Cell>
 
               <Table.Cell>
-                <Button variation="delete" onClick={() => showcase.deleteRow(i)}>
+                <Button variation="delete" onClick={() => deleteRow(i)}>
                   Delete
                 </Button>
               </Table.Cell>

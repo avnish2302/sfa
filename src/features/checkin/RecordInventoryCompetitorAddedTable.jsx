@@ -1,19 +1,33 @@
 import Table from "../../components/Table";
 import Button from "../../components/Button";
 import styled from "styled-components";
+import { useState } from "react";
 
-export default function RecordInventoryCompetitorAddedTable({
-  inventoryCompetitor,
-}) {
-  const {
-    saved,
-    emptyRow,
-    editIndex,
-    setEditIndex,
-    handleSavedChange,
-    handleDeleteSaved,
-    handleSaveEdit,
-  } = inventoryCompetitor;
+export default function RecordInventoryCompetitorAddedTable({saved, setSaved,}) {
+  const emptyRow = {
+    category: "",
+    product: "",
+    sku: "",
+    caseQty: "",
+    bottleQty: "",
+  };
+
+  const [editIndex, setEditIndex] = useState(null);
+
+  const handleSavedChange = (i, key, value) => {
+    const copy = [...saved];
+    if (key === "caseQty" || key === "bottleQty") {
+      copy[i][key] = value === "" ? "" : Number(value);
+    } else {
+      copy[i][key] = value;
+    }
+    setSaved(copy);
+  };
+
+  const handleDeleteSaved = (i) =>
+    setSaved(saved.filter((_, idx) => idx !== i));
+
+  const handleSaveEdit = () => setEditIndex(null);
 
   return (
     <Table>
@@ -35,19 +49,12 @@ export default function RecordInventoryCompetitorAddedTable({
                 {editIndex === i ? (
                   <Table.Input
                     type={
-                      key === "caseQty" ||
-                      key === "bottleQty"
+                      key === "caseQty" || key === "bottleQty"
                         ? "number"
                         : "text"
                     }
                     value={row[key]}
-                    onChange={(e) =>
-                      handleSavedChange(
-                        i,
-                        key,
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => handleSavedChange(i, key, e.target.value)}
                   />
                 ) : (
                   row[key]
@@ -57,35 +64,32 @@ export default function RecordInventoryCompetitorAddedTable({
 
             <Table.Cell>
               <Actions>
+                {editIndex === i ? (
+                  <Button
+                    variation="saveEdit"
+                    size="sm"
+                    onClick={handleSaveEdit}
+                  >
+                    Save Edit
+                  </Button>
+                ) : (
+                  <Button
+                    variation="edit"
+                    size="sm"
+                    onClick={() => setEditIndex(i)}
+                  >
+                    Edit
+                  </Button>
+                )}
 
-              {editIndex === i ? (
                 <Button
-                variation="saveEdit"
-                size="sm"
-                onClick={handleSaveEdit}
+                  variation="delete"
+                  size="sm"
+                  onClick={() => handleDeleteSaved(i)}
                 >
-                  Save Edit
+                  Delete
                 </Button>
-              ) : (
-                <Button
-                variation="edit"
-                size="sm"
-                onClick={() => setEditIndex(i)}
-                >
-                  Edit
-                </Button>
-              )}
-
-              <Button
-                variation="delete"
-                size="sm"
-                onClick={() =>
-                  handleDeleteSaved(i)
-                }
-                >
-                Delete
-              </Button>
-                </Actions>
+              </Actions>
             </Table.Cell>
           </Table.Row>
         )}
@@ -98,6 +102,4 @@ const Actions = styled.div`
   display: flex;
   gap: 0.6rem;
   justify-content: center;
-  align-items: center;
-  flex-wrap: nowrap;
 `;

@@ -13,9 +13,10 @@ export default function CheckOut() {
 
   return (
     <Wrapper>
+      <Title>Check-In</Title>
       <ShopName />
       <Card width="100rem">
-        {/* ---------- ACTIVITY SUMMARY ---------- */}
+
         <Section>
           <h2>Activity Summary</h2>
           <Grid>
@@ -28,13 +29,11 @@ export default function CheckOut() {
           </Grid>
         </Section>
 
-        {/* ---------- PENDING ---------- */}
         <Section>
           <h2>Pending</h2>
           <p>1. No collections</p>
         </Section>
 
-        {/* ---------- SHOP STATS ---------- */}
         <ShopStats>
           <Stat>
             <StatLabel>Shops Visited</StatLabel>
@@ -53,7 +52,6 @@ export default function CheckOut() {
           </Stat>
         </ShopStats>
 
-        {/* ---------- SAVE BUTTON ---------- */}
         <ButtonWrapper>
           <Button variant="primary" size="md" onClick={handleSave}>
             Save
@@ -66,9 +64,16 @@ export default function CheckOut() {
 }
 
 const Wrapper = styled.div`
-  padding: 2.4rem;
-  background-color: var(--bg-main);
-  color: var(--text-primary);
+ display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  padding: 1.6rem;
+`;
+
+const Title = styled.h2`
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--color-brown-700);
 `;
 
 const Section = styled.section`

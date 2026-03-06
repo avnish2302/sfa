@@ -2,7 +2,15 @@ import Table from "../../components/Table";
 import Button from "../../components/Button";
 import styled from "styled-components";
 
-export default function AssetAssignmentTable({ asset }) {
+export default function AssetAssignmentTable({ rows, setRows }) {
+  const updateRow = (index, key, value) => {
+    const copy = [...rows];
+    copy[index][key] = value;
+    setRows(copy);
+  };
+
+  const deleteRow = (index) => setRows(rows.filter((_, i) => i !== index));
+
   return (
     <Table>
       <Table.Header>
@@ -14,29 +22,27 @@ export default function AssetAssignmentTable({ asset }) {
       </Table.Header>
 
       <Table.Body
-        data={asset.rows}
+        data={rows}
         render={(row, i) => (
           <Table.Row key={i}>
             <Table.Cell>
               <Table.Input
                 value={row.brand}
-                onChange={(e) => asset.updateRow(i, "brand", e.target.value)}
+                onChange={(e) => updateRow(i, "brand", e.target.value)}
               />
             </Table.Cell>
 
             <Table.Cell>
               <Table.Input
                 value={row.asset}
-                onChange={(e) => asset.updateRow(i, "asset", e.target.value)}
+                onChange={(e) => updateRow(i, "asset", e.target.value)}
               />
             </Table.Cell>
 
             <Table.Cell>
               <Table.Input
                 value={row.remarks}
-                onChange={(e) =>
-                  asset.updateRow(i, "remarks", e.target.value)
-                }
+                onChange={(e) => updateRow(i, "remarks", e.target.value)}
               />
             </Table.Cell>
 
@@ -47,9 +53,7 @@ export default function AssetAssignmentTable({ asset }) {
                     Choose File
                     <Table.HiddenInput
                       type="file"
-                      onChange={(e) =>
-                        asset.updateRow(i, "image", e.target.files[0])
-                      }
+                      onChange={(e) => updateRow(i, "image", e.target.files[0])}
                     />
                   </FileButton>
                 ) : (
@@ -61,7 +65,7 @@ export default function AssetAssignmentTable({ asset }) {
                       <Table.HiddenInput
                         type="file"
                         onChange={(e) =>
-                          asset.updateRow(i, "image", e.target.files[0])
+                          updateRow(i, "image", e.target.files[0])
                         }
                       />
                     </Table.ChangeLabel>
@@ -71,7 +75,7 @@ export default function AssetAssignmentTable({ asset }) {
             </Table.Cell>
 
             <Table.Cell>
-              <Button variation="delete" onClick={() => asset.deleteRow(i)}>
+              <Button variation="delete" onClick={() => deleteRow(i)}>
                 Delete
               </Button>
             </Table.Cell>

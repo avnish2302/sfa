@@ -32,8 +32,8 @@ export default function RecordInventoryOwn({checkinId}) {
 
   const handleSaveToDB = () => {
   if (!checkinId) {
-    toast.error("No active check-in");
-    return;
+    toast.error("No active check-in")
+    return
   }
   inventoryMutation.mutate({
     checkinId,

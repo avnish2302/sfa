@@ -2,7 +2,23 @@ import styled from "styled-components";
 import Table from "../../components/Table"; // Importing the existing Table component
 import Button from "../../components/Button";
 
-export default function MenuTable({ menu }) {
+export default function MenuTable({rows, setRows, fileKey}) {
+
+const formatPrice = (value) => value.replace(/[^0-9.]/g, "");
+
+const updateRow = (index, key, value) => {
+const copy = [...rows];
+
+if (key === "price") value = formatPrice(value);
+
+copy[index][key] = value;
+setRows(copy);
+
+};
+
+const deleteRow = (index) =>
+setRows(rows.filter((_, i) => i !== index));
+
   return (
     <>
       <Table>
@@ -15,20 +31,20 @@ export default function MenuTable({ menu }) {
         </Table.Header>
 
         <Table.Body
-          data={menu.rows}
+          data={rows}
           render={(row, i) => (
             <Table.Row key={i}>
               <Table.Cell>
                 <Table.Input
                   value={row.category}
-                  onChange={(e) => menu.updateRow(i, "category", e.target.value)}
+                  onChange={(e) => updateRow(i, "category", e.target.value)}
                 />
               </Table.Cell>
 
               <Table.Cell>
                 <Table.Input
                   value={row.product}
-                  onChange={(e) => menu.updateRow(i, "product", e.target.value)}
+                  onChange={(e) => updateRow(i, "product", e.target.value)}
                 />
               </Table.Cell>
 
@@ -36,7 +52,7 @@ export default function MenuTable({ menu }) {
                 <Table.Input
                   value={row.price}
                   placeholder="₹"
-                  onChange={(e) => menu.updateRow(i, "price", e.target.value)}
+                  onChange={(e) => updateRow(i, "price", e.target.value)}
                 />
               </Table.Cell>
 
@@ -46,9 +62,10 @@ export default function MenuTable({ menu }) {
                     <FileButton>
                       Choose File
                       <Table.HiddenInput
+                      key={fileKey}
                         type="file"
                         onChange={(e) =>
-                          menu.updateRow(i, "image", e.target.files[0])
+                          updateRow(i, "image", e.target.files[0])
                         }
                       />
                     </FileButton>
@@ -61,7 +78,7 @@ export default function MenuTable({ menu }) {
                         <Table.HiddenInput
                           type="file"
                           onChange={(e) =>
-                            menu.updateRow(i, "image", e.target.files[0])
+                            updateRow(i, "image", e.target.files[0])
                           }
                         />
                       </Table.ChangeLabel>
@@ -71,7 +88,7 @@ export default function MenuTable({ menu }) {
               </Table.Cell>
 
               <Table.Cell>
-                <Button variation="delete" onClick={() => menu.deleteRow(i)}>
+                <Button variation="delete" onClick={() => deleteRow(i)}>
                   Delete
                 </Button>
               </Table.Cell>

@@ -12,7 +12,7 @@ export default function PunchIn() {
     mutationFn: punchIn,
     onSuccess: () => {
       toast.success("Punch In Successful!");
-      
+
       reset();
     },
     onError: (error) => {

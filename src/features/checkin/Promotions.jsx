@@ -3,8 +3,10 @@ import styled from "styled-components";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { toast } from "react-toastify";
+import {savePromotions} from "../../services/apiPromotions"
+import { useMutation } from "@tanstack/react-query";
 
-export default function Promotions() {
+export default function Promotions({checkinId}) {
   const {
     register,
     handleSubmit,
@@ -12,11 +14,26 @@ export default function Promotions() {
     formState: { isValid },
   } = useForm({ mode: "onChange" });
 
+   // TanStack mutation
+  const promotionsMutation = useMutation({
+    mutationFn: savePromotions,
+
+    onSuccess: () => {
+      toast.success("Saved successfully!");
+      reset();
+    },
+
+    onError: (error) => toast.error(error.message),
+  });
+
+  // Form submit
   const onSubmit = (data) => {
-    console.log("Saved:", data);
-    toast.success("Saved successfully!");
-    reset();
+    promotionsMutation.mutate({
+      checkinId,
+      data
+    });
   };
+
 
   return (
     <>
@@ -26,13 +43,13 @@ export default function Promotions() {
         <Form onSubmit={handleSubmit(onSubmit)}>
           <InputField
             type="date"
-            {...register("fromDate", { required: true })}
+            {...register("start_date", { required: true })}
             placeholder="From Date"
           />
 
           <InputField
             type="date"
-            {...register("toDate", { required: true })}
+            {...register("end_date", { required: true })}
             placeholder="To Date"
           />
 
@@ -48,7 +65,7 @@ export default function Promotions() {
             <option>Rum</option>
           </Select>
 
-          <InputField {...register("brands")} placeholder="Brand(s)" />
+          <InputField {...register("brand")} placeholder="Brand(s)" />
 
           <Select {...register("sku", { required: true })}>
             <option value="">Select SKU</option>

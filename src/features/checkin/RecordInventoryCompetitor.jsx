@@ -1,28 +1,78 @@
 import styled from "styled-components";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
-import { useRecordInventoryCompetitor } from "../../hooks/useRecordInventoryCompetitor";
 import RecordInventoryCompetitorTable from "./RecordInventoryCompetitorTable";
 import RecordInventoryCompetitorAddedTable from "./RecordInventoryCompetitorAddedTable";
 import AddRowButton from "../../components/AddRowButton";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import { useMutation } from "@tanstack/react-query";
+import { saveCompetitorInventory } from "../../services/apiInventory";
 
-export default function RecordInventoryCompetitor() {
-  const inventoryCompetitor = useRecordInventoryCompetitor();
+export default function RecordInventoryCompetitor({ checkinId }) {
+
+  const emptyRow = {
+    category: "",
+    product: "",
+    sku: "",
+    caseQty: "",
+    bottleQty: "",
+  };
+
+  const [rows, setRows] = useState([{ ...emptyRow }]);
+  const [saved, setSaved] = useState([]);
+
+  const inventoryMutation = useMutation({
+    mutationFn : saveCompetitorInventory,
+    onSuccess : () =>{
+      toast.success("Saved Successfully")
+      setSaved([])
+    },
+    onError : (error) => {
+    toast.error(error.message);
+    }
+  })
+
+  const isValid = () =>
+    rows.every((r) => Object.values(r).every((v) => v !== ""));
+
+  const handleAdd = () => {
+    if (!isValid()) return;
+
+    setSaved([...saved, ...rows]);
+    setRows([{ ...emptyRow }]);
+  };
+
+  const handleSaveToDB = () => {
+   if (!checkinId) {
+    toast.error("No active check-in")
+    return
+  }
+  inventoryMutation.mutate({
+    checkinId,
+    items: saved,
+  });
+  };
+
+  const addRow = () => setRows([...rows, { ...emptyRow }]);
 
   return (
     <Wrapper>
-      <AddRowButton onClick={inventoryCompetitor.addRow} />
+      <AddRowButton onClick={addRow} />
 
       <Card width="100rem">
         <Section>
-          <RecordInventoryCompetitorTable inventoryCompetitor={inventoryCompetitor} />
+          <RecordInventoryCompetitorTable
+            rows={rows}
+            setRows={setRows}
+          />
 
           <Center>
             <Button
               variation="primary"
               size="md"
-              onClick={inventoryCompetitor.handleAdd}
-              disabled={!inventoryCompetitor.isValid()}
+              onClick={handleAdd}
+              disabled={!isValid()}
             >
               Add
             </Button>
@@ -30,17 +80,16 @@ export default function RecordInventoryCompetitor() {
         </Section>
       </Card>
 
-      {inventoryCompetitor.saved.length > 0 && (
+      {saved.length > 0 && (
         <Card width="100rem">
           <Section>
-            <RecordInventoryCompetitorAddedTable inventoryCompetitor={inventoryCompetitor} />
+            <RecordInventoryCompetitorAddedTable
+              saved={saved}
+              setSaved={setSaved}
+            />
 
             <Center>
-              <Button
-                variation="primary"
-                size="md"
-                onClick={inventoryCompetitor.handleSaveToDatabase}
-              >
+              <Button variation="primary" size="md" onClick={handleSaveToDB}>
                 Save
               </Button>
             </Center>
@@ -50,8 +99,6 @@ export default function RecordInventoryCompetitor() {
     </Wrapper>
   );
 }
-
-/* =============================== */
 
 const Wrapper = styled.div`
   display: flex;
@@ -69,5 +116,3 @@ const Center = styled.div`
   display: flex;
   justify-content: center;
 `;
-
-

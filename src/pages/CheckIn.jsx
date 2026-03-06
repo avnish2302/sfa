@@ -13,14 +13,21 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { createCheckin } from "../services/apiCheckin";
 import Button from "../components/Button";
+import { toast } from "react-toastify";
 
 export default function CheckIn() {
-  const checkinMutation = useMutation({
-    mutationFn: createCheckin,
-    onSuccess: (data) => {
-      setCheckinId(data.checkin_id);
-    },
-  });
+const checkinMutation = useMutation({
+  mutationFn: createCheckin,
+
+  onSuccess: (data) => {
+    setCheckinId(data.checkin_id);
+    toast.success("Check-in started");
+  },
+
+  onError: (error) => {
+    toast.error(error.message || "Punch-In required before Check-In");
+  },
+});
 
   const navigate = useNavigate();
   const { tab = "main" } = useParams();
@@ -49,22 +56,20 @@ export default function CheckIn() {
     <Wrapper>
       <Title>Check-In</Title>
       <Row>
-  <ShopName
-    selectedShop={selectedShop}
-    setSelectedShop={handleShopSelect}
-  />
+        <ShopName
+          selectedShop={selectedShop}
+          setSelectedShop={handleShopSelect}
+        />
 
-  <Button
-   variation="primary"
-   size="md"
-    disabled={!selectedShop || checkinMutation.isPending}
-    onClick={() =>
-      checkinMutation.mutate({ shop_id: selectedShop })
-    }
-  >
-    {checkinMutation.isPending ? "Checking in..." : "Check-In"}
-  </Button>
-</Row>
+        <Button
+          variation="primary"
+          size="md"
+          disabled={!selectedShop || checkinMutation.isPending}
+          onClick={() => checkinMutation.mutate({ shop_id: selectedShop })}
+        >
+          {checkinMutation.isPending ? "Checking in..." : "Check-In"}
+        </Button>
+      </Row>
       <Tabs>
         {tabs.map((t) => (
           <TabButton

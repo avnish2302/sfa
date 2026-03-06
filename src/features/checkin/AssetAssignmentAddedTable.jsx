@@ -1,8 +1,23 @@
 import Table from "../../components/Table";
 import Button from "../../components/Button";
 import styled from "styled-components";
+import { useState } from "react";
 
-export default function AssetAssignmentAddedTable({ asset }) {
+export default function AssetAssignmentAddedTable({saved, setSaved}) {
+
+  const [editIndex, setEditIndex] = useState(null);
+
+const handleSavedChange = (i, key, value) => {
+const copy = [...saved];
+copy[i][key] = value;
+setSaved(copy);
+};
+
+const handleDeleteSaved = (i) =>
+setSaved(saved.filter((_, idx) => idx !== i));
+
+const handleSaveEdit = () => setEditIndex(null)
+
   return (
     <Table>
       <Table.Header>
@@ -14,15 +29,15 @@ export default function AssetAssignmentAddedTable({ asset }) {
       </Table.Header>
 
       <Table.Body
-        data={asset.saved}
+        data={saved}
         render={(row, i) => (
           <Table.Row key={i}>
             <Table.Cell>
-              {asset.editIndex === i ? (
+              {editIndex === i ? (
                 <Table.Input
                   value={row.brand}
                   onChange={(e) =>
-                    asset.handleSavedChange(i, "brand", e.target.value)
+                    handleSavedChange(i, "brand", e.target.value)
                   }
                 />
               ) : (
@@ -31,11 +46,11 @@ export default function AssetAssignmentAddedTable({ asset }) {
             </Table.Cell>
 
             <Table.Cell>
-              {asset.editIndex === i ? (
+              {editIndex === i ? (
                 <Table.Input
                   value={row.asset}
                   onChange={(e) =>
-                    asset.handleSavedChange(i, "asset", e.target.value)
+                    handleSavedChange(i, "asset", e.target.value)
                   }
                 />
               ) : (
@@ -44,11 +59,11 @@ export default function AssetAssignmentAddedTable({ asset }) {
             </Table.Cell>
 
             <Table.Cell>
-              {asset.editIndex === i ? (
+              {editIndex === i ? (
                 <Table.Input
                   value={row.remarks}
                   onChange={(e) =>
-                    asset.handleSavedChange(i, "remarks", e.target.value)
+                    handleSavedChange(i, "remarks", e.target.value)
                   }
                 />
               ) : (
@@ -61,17 +76,17 @@ export default function AssetAssignmentAddedTable({ asset }) {
             <Table.Cell>
               <Actions>
 
-              {asset.editIndex === i ? (
-                <Button variation="saveEdit" onClick={asset.handleSaveEdit}>
+              {editIndex === i ? (
+                <Button variation="saveEdit" onClick={handleSaveEdit}>
                   Save Edit
                 </Button>
               ) : (
-                <Button variation="edit" onClick={() => asset.setEditIndex(i)}>
+                <Button variation="edit" onClick={() => setEditIndex(i)}>
                   Edit
                 </Button>
               )}
 
-              <Button variation="delete" onClick={() => asset.handleDeleteSaved(i)}>
+              <Button variation="delete" onClick={() => handleDeleteSaved(i)}>
                 Delete
               </Button>
               </Actions>

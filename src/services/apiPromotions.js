@@ -1,13 +1,16 @@
-export async function createCheckin(data) {
+export async function savePromotions({ checkinId, data }) {
   const token = localStorage.getItem("token");
 
-  const res = await fetch("http://localhost:5000/api/checkin", {
+  const res = await fetch("http://localhost:5000/api/promotions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      checkin_id: checkinId,
+      ...data,
+    }),
   });
 
   const result = await res.json();
