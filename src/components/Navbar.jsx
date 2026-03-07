@@ -1,26 +1,42 @@
 import styled from "styled-components";
 import Button from "./Button";
 import { useUser } from "../hooks/useUser";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Navbar() {
-const {data : user, isLoading, isError} = useUser()
+  const { data: user, isLoading, isError } = useUser();
+
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleLogout = () => {
+    // remove token
+    localStorage.removeItem("token");
+
+    // clear cached user
+    queryClient.removeQueries();
+
+    // redirect to login
+    navigate("/", { replace: true });
+  };
 
   return (
     <Styledheader>
       <Heading>SFA System</Heading>
+
       <ActionContainer>
-         {!isLoading && !isError && user && (
+        {!isLoading && !isError && user && (
           <Username>{user.name}</Username>
         )}
-     
-        <Button variation="delete" size="sm">
+
+        <Button variation="delete" size="sm" onClick={handleLogout}>
           Logout
         </Button>
       </ActionContainer>
     </Styledheader>
   );
 }
-
 const Styledheader = styled.header`
   background-color: var(--bg-main);
   border-bottom: 1px solid var(--border-color);

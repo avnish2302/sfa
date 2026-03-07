@@ -12,6 +12,7 @@ export default function ShopName({ selectedShop, setSelectedShop }) {
       <Select
         value={selectedShop}
         onChange={(e) => setSelectedShop(e.target.value)}
+        disabled={!setSelectedShop}
       >
         <option value="">Select Shop</option>
         {shops.map((shop) => (

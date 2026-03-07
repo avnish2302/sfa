@@ -2,14 +2,15 @@ import { useForm } from "react-hook-form";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import styled from "styled-components";
-import { useVehicleContext } from "../contexts/VehicalContext";
 import { toast } from "react-toastify";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPunchSummary, punchOut } from "../services/apiPunch";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function PunchOut() {
-  const { ownVehicle } = useVehicleContext();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
     data: summary,
@@ -31,18 +32,26 @@ export default function PunchOut() {
     shouldUnregister: true,
   });
 
-  const punchOutMutation = useMutation({
-    mutationFn: punchOut,
-    onSuccess: () => {
-      toast.success("Punch Out Successful!");
-      reset();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+
+const punchOutMutation = useMutation({
+  mutationFn: punchOut,
+   onSuccess: () => {
+    toast.success("Punch Out Successful!");
+
+    // instantly update sidebar state
+    queryClient.setQueryData(["punchSummary"], null);
+
+    reset();
+    navigate("/punchin", { replace: true });
+  },
+  onError: (error) => {
+    toast.error(error.message);
+  },
+});
 
   const image = watch("image");
+
+  const ownVehicle = summary?.ownVehicle;   // comes from backend summary
 
   const onSubmit = (data) => {
     punchOutMutation.mutate({
@@ -54,16 +63,16 @@ export default function PunchOut() {
 
   const [currentTime, setCurrentTime] = useState(new Date());
 
-useEffect(() => {
-  const timer = setInterval(() => {
-    setCurrentTime(new Date());
-  }, 1000);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
 
-  return () => clearInterval(timer);
-}, []);
+    return () => clearInterval(timer);
+  }, []);
 
   if (isLoading) return <p>Loading summary...</p>;
-  if (isError) return <p>Failed to load summary</p>;
+  if (isError) return <p>Please punch in first.</p>;
 
   return (
     <Wrapper>
@@ -81,20 +90,25 @@ useEffect(() => {
             <Grid>
               <GridItem>Entered Inventory</GridItem>
               <GridItem>: {summary?.totalInventory}</GridItem>
+
               <GridItem>Collected Cash</GridItem>
               <GridItem>: {summary?.cashCollected} Rs</GridItem>
+
               <GridItem>Promotion Given</GridItem>
               <GridItem>: </GridItem>
+
               <GridItem>Distance covered</GridItem>
               <GridItem>: </GridItem>
+
               <GridItem>Shops Visited</GridItem>
               <GridItem>: {summary?.shopsVisited}</GridItem>
+
               <GridItem>Shops not visited</GridItem>
               <GridItem>: {summary?.shopsPending}</GridItem>
             </Grid>
           </Section>
 
-          {ownVehicle === true && (
+          {ownVehicle && (
             <Section>
               <Field>
                 <Label>Odometer Reading (KM)</Label>
@@ -127,7 +141,7 @@ useEffect(() => {
 
                 {image?.length > 0 && <FileName>{image[0].name}</FileName>}
 
-                {errors.image && <Error>{errors.file.message}</Error>}
+                {errors.image && <ErrorText>{errors.image.message}</ErrorText>}
               </Field>
             </Section>
           )}

@@ -2,16 +2,21 @@ import { useForm } from "react-hook-form";
 import styled from "styled-components";
 import Button from "../components/Button";
 import Card from "../components/Card";
-import { useVehicleContext } from "../contexts/VehicalContext";
 import { toast } from "react-toastify";
-import { useMutation } from "@tanstack/react-query";
 import { punchIn } from "../services/apiPunch";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function PunchIn() {
+  const queryClient = useQueryClient();
+
   const mutation = useMutation({
     mutationFn: punchIn,
     onSuccess: () => {
       toast.success("Punch In Successful!");
+
+      queryClient.invalidateQueries({
+        queryKey: ["punchSummary"],
+      });
 
       reset();
     },
@@ -20,30 +25,26 @@ export default function PunchIn() {
     },
   });
 
-  const { setOwnVehicle } = useVehicleContext();
-
   const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { isValid, errors },
+    register, // connect inputs to form
+    handleSubmit, // handle submit events
+    watch, // obsereve field values
+    reset, // clear form
+    formState: { isValid, errors }, // validation status and validation errors
   } = useForm({
-    mode: "onChange",
-    shouldUnregister: true,
+    mode: "onChange", // validation runs while typing
+    shouldUnregister: true, // when a field dissappears (like conditional fields) its value is removed from form state
   });
 
-  const ownVehicle = watch("ownVehicle");
+  const ownVehicle = watch("ownVehicle"); // watch() subscribe to field changes, if user selects Own Vehicle = yes, then ownVehicle = "yes"
   const image = watch("image");
 
   const onSubmit = (data) => {
     mutation.mutate({
-      own_vehicle: data.ownVehicle === "yes",
-      vehicle_type: data.vehicleType || null,
-      odometer_reading: data.odometer || null,
+      ownVehicle: data.ownVehicle === "yes", //converting to boolean. if ownVehicle = "yes", then "yes" === "yes" becomes true, if ownVehicle  = "no", then "no" === "yes" becomes false
+      vehicleType: data.vehicleType || null,
+      odometerReading: data.odometerReading || null,
     });
-
-    setOwnVehicle(data.ownVehicle === "yes");
   };
 
   return (
@@ -52,9 +53,8 @@ export default function PunchIn() {
         <Title>Punch In</Title>
 
         <Form onSubmit={handleSubmit(onSubmit)}>
-          {/* Own Vehicle */}
           <FormGroup>
-            <Label>Own Vehicle</Label>
+            <Label>Own Vehicle?</Label>
             <Select {...register("ownVehicle", { required: true })}>
               <option value="">Select</option>
               <option value="no">No</option>
@@ -64,7 +64,6 @@ export default function PunchIn() {
 
           {ownVehicle === "yes" && (
             <>
-              {/* Vehicle Type */}
               <FormGroup>
                 <Label>Vehicle Type</Label>
                 <Select
@@ -78,18 +77,16 @@ export default function PunchIn() {
                 </Select>
               </FormGroup>
 
-              {/* Odometer */}
               <FormGroup>
                 <Label>Odometer Reading (KM)</Label>
                 <Input
                   type="number"
-                  {...register("odometer", {
+                  {...register("odometerReading", {
                     required: "Odometer reading is required",
                   })}
                 />
               </FormGroup>
 
-              {/* Upload Image */}
               <FormGroup>
                 <Label>Upload Image</Label>
 
@@ -109,7 +106,6 @@ export default function PunchIn() {
                 </UploadWrapper>
 
                 {image?.length > 0 && <FileName>{image[0].name}</FileName>}
-
                 {errors.image && <ErrorText>{errors.image.message}</ErrorText>}
               </FormGroup>
             </>

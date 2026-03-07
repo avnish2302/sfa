@@ -1,31 +1,58 @@
 import ShopName from "../components/ShopName";
 import Button from "../components/Button";
-import Card from "../components/Card"; // Importing Card Component
+import Card from "../components/Card";
 import styled from "styled-components";
 import { toast } from "react-toastify";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getCheckinSummary, checkout } from "../services/apiCheckout";
 
 export default function CheckOut() {
+  const checkinId = localStorage.getItem("activeCheckinId");
+  const shopId = localStorage.getItem("activeShopId");
+
+  const { data: summary, isLoading } = useQuery({
+    queryKey: ["checkinSummary", checkinId],
+    queryFn: () => getCheckinSummary(checkinId),
+    enabled: !!checkinId,
+  });
+
+  const checkoutMutation = useMutation({
+    mutationFn: () => checkout(checkinId),
+    onSuccess: () => {
+      localStorage.removeItem("activeCheckinId");
+      localStorage.removeItem("activeShopId");
+
+      toast.success("Checkout successful!");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const handleSave = () => {
-    toast.success("Saved successfully!");
-    
+    checkoutMutation.mutate();
   };
+
+  if (isLoading) return <p>Loading...</p>;
 
   return (
     <Wrapper>
-      <Title>Check-In</Title>
-      <ShopName />
-      <Card width="100rem">
+      <Title>Check-Out</Title>
+      <ShopName selectedShop={shopId} />
 
+      <Card width="100rem">
         <Section>
           <h2>Activity Summary</h2>
+
           <Grid>
             <GridItem>Entered Inventory</GridItem>
-            <GridItem>: 0 </GridItem>
+            <GridItem>: {summary?.inventoryEntered ?? 0}</GridItem>
+
             <GridItem>Collected Cash</GridItem>
-            <GridItem>: 0 Rs</GridItem>
+            <GridItem>: {summary?.cashCollected ?? 0} Rs</GridItem>
+
             <GridItem>Promotion Given</GridItem>
-            <GridItem>: </GridItem>
+            <GridItem>:</GridItem>
           </Grid>
         </Section>
 
@@ -34,37 +61,23 @@ export default function CheckOut() {
           <p>1. No collections</p>
         </Section>
 
-        <ShopStats>
-          <Stat>
-            <StatLabel>Shops Visited</StatLabel>
-            <Input
-              type="number"
-              min="0"
-            />
-          </Stat>
-
-          <Stat>
-            <StatLabel>Shops Pending</StatLabel>
-            <Input
-              type="number"
-              min="0"
-            />
-          </Stat>
-        </ShopStats>
-
         <ButtonWrapper>
-          <Button variant="primary" size="md" onClick={handleSave}>
+          <Button
+            variation="primary"
+            size="md"
+            onClick={handleSave}
+            disabled={checkoutMutation.isPending}
+          >
             Save
           </Button>
         </ButtonWrapper>
-
       </Card>
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
- display: flex;
+  display: flex;
   flex-direction: column;
   gap: 2.4rem;
   padding: 1.6rem;

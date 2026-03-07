@@ -17,6 +17,7 @@ import Routes from "./pages/Routes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ProtectedRoute from "./components/ProtectedRoutes"
 
 function App() {
   const queryClient = new QueryClient();
@@ -25,29 +26,36 @@ function App() {
       <GlobalStyles />
       <QueryClientProvider client={queryClient}>
         <ToastContainer position="top-right" autoClose={3000} />
-              <VehicleProvider>
-                <BrowserRouter>
-                  <BrowserRouterRoutes>
-                    <Route path="/" element={<Login />} />
-                    <Route element={<MainLayout />}>
-                      <Route
-                        path="/checkin"
-                        element={<Navigate to="/checkin/main" replace />}
-                      />
-                      <Route path="/checkin/:tab" element={<CheckIn />} />
-                      <Route path="/checkout" element={<CheckOut />} />
-                      <Route path="/inventory" element={<Inventory />} />
-                      <Route path="/punchin" element={<PunchIn />} />
-                      <Route path="/punchout" element={<PunchOut />} />
-                      <Route
-                        path="/routes"
-                        element={<Navigate to="/routes/self" replace />}
-                      />
-                      <Route path="/routes/:tab" element={<Routes />} />
-                    </Route>
-                  </BrowserRouterRoutes>
-                </BrowserRouter>
-              </VehicleProvider>
+        <VehicleProvider>
+          <BrowserRouter>
+            <BrowserRouterRoutes>
+              <Route path="/" element={<Login />} />
+
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <MainLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route
+                  path="/checkin"
+                  element={<Navigate to="/checkin/main" replace />}
+                />
+                <Route path="/checkin/:tab" element={<CheckIn />} />
+                <Route path="/checkout" element={<CheckOut />} />
+                <Route path="/inventory" element={<Inventory />} />
+                <Route path="/punchin" element={<PunchIn />} />
+                <Route path="/punchout" element={<PunchOut />} />
+                <Route
+                  path="/routes"
+                  element={<Navigate to="/routes/self" replace />}
+                />
+                <Route path="/routes/:tab" element={<Routes />} />
+              </Route>
+            </BrowserRouterRoutes>
+          </BrowserRouter>
+        </VehicleProvider>
       </QueryClientProvider>
     </>
   );

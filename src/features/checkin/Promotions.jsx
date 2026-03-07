@@ -31,8 +31,8 @@ export default function Promotions({checkinId}) {
     promotionsMutation.mutate({
       checkinId,
       data
-    });
-  };
+    })
+  }
 
 
   return (

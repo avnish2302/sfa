@@ -3,8 +3,10 @@ import styled from "styled-components";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { toast } from "react-toastify";
+import { useMutation } from "@tanstack/react-query";
+import {saveCollection} from "../../services/apiCollection"
 
-export default function Collection() {
+export default function Collection({checkinId}) {
   const {
     register,
     handleSubmit,
@@ -15,15 +17,22 @@ export default function Collection() {
 
   const file = watch("image");
 
-  const onSubmit = (data) => {
-    console.log(data);
-    const image = data.image?.[0];
-    console.log(image);
-    toast.success("Saved successfully!");
+  const collectionMutation = useMutation({
+    mutationFn : saveCollection,
+    onSuccess : () =>{
+      toast.success("Saved successfully"),
+      reset()
+    },
+    onError : (error) => toast.error(error.message)
+  })
 
-    // reset entire form
-    reset();
-  };
+ const onSubmit = (data) => {
+  console.log(data, "checkin ID:",checkinId)
+    collectionMutation.mutate({
+      checkinId,
+      data
+    })
+  }
 
   return (
     <>

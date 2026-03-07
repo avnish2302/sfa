@@ -16,23 +16,44 @@ import Button from "../components/Button";
 import { toast } from "react-toastify";
 
 export default function CheckIn() {
-const checkinMutation = useMutation({
-  mutationFn: createCheckin,
-
-  onSuccess: (data) => {
-    setCheckinId(data.checkin_id);
-    toast.success("Check-in started");
-  },
-
-  onError: (error) => {
-    toast.error(error.message || "Punch-In required before Check-In");
-  },
-});
-
   const navigate = useNavigate();
   const { tab = "main" } = useParams();
+
+  const [selectedShop, setSelectedShop] = useState(
+    () => localStorage.getItem("activeShopId") || "",
+  );
+
+  const [checkinId, setCheckinId] = useState(
+    () => localStorage.getItem("activeCheckinId") || null,
+  );
+
+  /*
   const [selectedShop, setSelectedShop] = useState("");
   const [checkinId, setCheckinId] = useState(null);
+
+  useEffect(() => {
+    const savedCheckin = localStorage.getItem("activeCheckinId");
+    const savedShop = localStorage.getItem("activeShopId");
+
+    if (savedCheckin) setCheckinId(savedCheckin);
+    if (savedShop) setSelectedShop(savedShop);
+  }, []);
+*/
+  const checkinMutation = useMutation({
+    mutationFn: createCheckin,
+    onSuccess: (data) => {
+      const id = data.checkin_id;
+      setCheckinId(id);
+
+      localStorage.setItem("activeCheckinId", id);
+      localStorage.setItem("activeShopId", selectedShop);
+
+      toast.success("Check-in started");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Punch-In required before Check_In");
+    },
+  });
 
   const handleShopSelect = (shopId) => {
     setSelectedShop(shopId);
@@ -51,7 +72,6 @@ const checkinMutation = useMutation({
     { key: "promotions", label: "Promotions" },
     { key: "collection", label: "Collection" },
   ];
-
   return (
     <Wrapper>
       <Title>Check-In</Title>

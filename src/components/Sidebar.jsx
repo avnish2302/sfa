@@ -1,15 +1,28 @@
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
+import { useQuery } from "@tanstack/react-query";
+import { getPunchSummary } from "../services/apiPunch";
 
 export default function Sidebar() {
+  const { data, isError } = useQuery({
+    queryKey: ["punchSummary"],
+    queryFn: getPunchSummary,
+    retry: false,
+  });
 
-  const links = [
-  { to: "/punchin", label: "Punch In" },
-  { to: "/checkin", label: "Check In" },
-  { to: "/checkout", label: "Check Out" },
-  { to: "/punchout", label : "Punch Out"},
-  { to: "/routes", label: "Routes" },
-]; 
+  const punchedIn = !isError && data;
+  const linksBeforePunch = [
+    { to: "/punchin", label: "Punch In" },
+    { to: "/routes", label: "Routes" },
+  ];
+  const linksAfterPunch = [
+    { to: "/checkin", label: "Check In" },
+    { to: "/checkout", label: "Check Out" },
+    { to: "/punchout", label: "Punch Out" },
+    { to: "/routes", label: "Routes" },
+  ];
+  const links = punchedIn ? linksAfterPunch : linksBeforePunch;
+
   return (
     <Container>
       <TopSection>
@@ -56,7 +69,6 @@ const Logo = styled.h2`
   color: var(--color-brown-700);
 `;
 
-
 const Nav = styled.nav`
   display: flex;
   flex-direction: column;
@@ -86,5 +98,3 @@ const StyledNavLink = styled(NavLink)`
     color: var(--color-brown-700);
   }
 `;
-
-

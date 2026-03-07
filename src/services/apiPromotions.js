@@ -1,7 +1,6 @@
 export async function savePromotions({ checkinId, data }) {
   const token = localStorage.getItem("token");
-
-  const res = await fetch("http://localhost:5000/api/promotions", {
+  const res = await fetch("http://localhost:5000/api/collection", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -11,7 +10,7 @@ export async function savePromotions({ checkinId, data }) {
       checkin_id: checkinId,
       ...data,
     }),
-  });
+  })
 
   const result = await res.json();
 
