@@ -4,24 +4,21 @@ import { useQuery } from "@tanstack/react-query";
 import { getPunchSummary } from "../services/apiPunch";
 
 export default function Sidebar() {
-  const { data, isError } = useQuery({
+  const { data } = useQuery({
     queryKey: ["punchSummary"],
     queryFn: getPunchSummary,
     retry: false,
   });
 
-  const punchedIn = !isError && data;
-  const linksBeforePunch = [
-    { to: "/punchin", label: "Punch In" },
-    { to: "/routes", label: "Routes" },
+  const punchedIn = !!data;
+
+  const links = [
+    { to: "/punchin", label: "Punch In", disabled: punchedIn },
+    { to: "/checkin", label: "Check In", disabled: !punchedIn },
+    { to: "/checkout", label: "Check Out", disabled: !punchedIn },
+    { to: "/punchout", label: "Punch Out", disabled: !punchedIn },
+    { to: "/routes", label: "Routes", disabled: false },
   ];
-  const linksAfterPunch = [
-    { to: "/checkin", label: "Check In" },
-    { to: "/checkout", label: "Check Out" },
-    { to: "/punchout", label: "Punch Out" },
-    { to: "/routes", label: "Routes" },
-  ];
-  const links = punchedIn ? linksAfterPunch : linksBeforePunch;
 
   return (
     <Container>
@@ -31,7 +28,12 @@ export default function Sidebar() {
 
       <Nav>
         {links.map((item) => (
-          <StyledNavLink key={item.to} to={item.to}>
+          <StyledNavLink
+            key={item.to}
+            to={item.to}
+            $disabled={item.disabled}
+            onClick={(e) => item.disabled && e.preventDefault()}
+          >
             {item.label}
           </StyledNavLink>
         ))}
@@ -39,10 +41,6 @@ export default function Sidebar() {
     </Container>
   );
 }
-
-/* ===============================
-   Styled Components
-================================ */
 
 const Container = styled.div`
   width: 24rem;
@@ -78,8 +76,6 @@ const Nav = styled.nav`
 const StyledNavLink = styled(NavLink)`
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-
   padding: 0.8rem 1.2rem;
   border-radius: var(--radius-sm);
   font-size: 1.4rem;
@@ -94,7 +90,9 @@ const StyledNavLink = styled(NavLink)`
   }
 
   &:not(.active):hover {
-    background-color: var(--color-brown-100);
-    color: var(--color-brown-700);
+    background-color: ${({ $disabled }) =>
+      $disabled ? "transparent" : "var(--color-brown-100)"};
+
+    cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   }
 `;

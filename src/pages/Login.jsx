@@ -6,37 +6,26 @@ import Button from "../components/Button";
 import { toast } from "react-toastify";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Login failed");
-      }
-
-      // Store token
-      localStorage.setItem("token", data.token);
-
-      toast.success("Login successful");
-
-      // Redirect to PunchIn page
-      navigate("/punchin");
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || "Login failed")
+      localStorage.setItem("token", data.token)     // Store token
+      toast.success("Login successful")
+      navigate("/punchin")
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.message)
     }
-  };
+  }
 
   return (
     <Page>
@@ -60,7 +49,7 @@ export default function Login() {
         </Content>
       </Card>
     </Page>
-  );
+  )
 }
 
 const Content = styled.div`

@@ -5,7 +5,6 @@ import SalesmanApproveAddedTable from "../routePlan/SalesmanApproveAddedTable";
 export default function SelfApprove() {
   return (
     <Wrapper>
-      <ShopName />
       <SalesmanApproveAddedTable />
     </Wrapper>
   );

@@ -5,7 +5,6 @@ import SelfAddedTable from "../routePlan/SelfAddedTable";
 export default function Self() {
   return (
     <Wrapper>
-      <ShopName />
       <SelfAddedTable />
     </Wrapper>
   );

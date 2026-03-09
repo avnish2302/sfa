@@ -40,6 +40,7 @@ export async function getPunchSummary() {
   return res.json()
 }
 
+
 export async function punchOut(data) {
   const token = localStorage.getItem("token");
 

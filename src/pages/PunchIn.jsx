@@ -5,39 +5,39 @@ import Card from "../components/Card";
 import { toast } from "react-toastify";
 import { punchIn } from "../services/apiPunch";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 
 export default function PunchIn() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const {
+    register,                       // connect inputs to form
+    handleSubmit,                   // handle submit events
+    watch,                          // obsereve field values
+    reset,                          // clear form
+    formState: { isValid, errors }, // validation status and validation errors
+  } = useForm({
+    mode: "onChange",               // validation runs while typing
+    shouldUnregister: true,         // when a field dissappears (like conditional fields) its value is removed from form state
+  })
+
+  const ownVehicle = watch("ownVehicle"); // watch() subscribe to field changes, if user selects Own Vehicle = yes, then ownVehicle = "yes"
+  const image = watch("image")
 
   const mutation = useMutation({
     mutationFn: punchIn,
     onSuccess: () => {
-      toast.success("Punch In Successful!");
-
-      queryClient.invalidateQueries({
-        queryKey: ["punchSummary"],
-      });
-
-      reset();
+      toast.success("Punch In Successful!")
+      // refresh sidebar state
+      queryClient.invalidateQueries(["punchSummary"]);
+      reset()
+      navigate("/checkin")
     },
     onError: (error) => {
       toast.error(error.message);
     },
-  });
-
-  const {
-    register, // connect inputs to form
-    handleSubmit, // handle submit events
-    watch, // obsereve field values
-    reset, // clear form
-    formState: { isValid, errors }, // validation status and validation errors
-  } = useForm({
-    mode: "onChange", // validation runs while typing
-    shouldUnregister: true, // when a field dissappears (like conditional fields) its value is removed from form state
-  });
-
-  const ownVehicle = watch("ownVehicle"); // watch() subscribe to field changes, if user selects Own Vehicle = yes, then ownVehicle = "yes"
-  const image = watch("image");
+  })
 
   const onSubmit = (data) => {
     mutation.mutate({

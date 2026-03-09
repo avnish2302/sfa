@@ -14,39 +14,22 @@ import { useMutation } from "@tanstack/react-query";
 import { createCheckin } from "../services/apiCheckin";
 import Button from "../components/Button";
 import { toast } from "react-toastify";
+import useActiveCheckin from "../hooks/useActiveCheckin";
 
 export default function CheckIn() {
   const navigate = useNavigate();
   const { tab = "main" } = useParams();
+  const { checkinId, shopId, startCheckin } = useActiveCheckin();
+  const [selectedShop, setSelectedShop] = useState(shopId || "");
 
-  const [selectedShop, setSelectedShop] = useState(
-    () => localStorage.getItem("activeShopId") || "",
-  );
-
-  const [checkinId, setCheckinId] = useState(
-    () => localStorage.getItem("activeCheckinId") || null,
-  );
-
-  /*
-  const [selectedShop, setSelectedShop] = useState("");
-  const [checkinId, setCheckinId] = useState(null);
-
-  useEffect(() => {
-    const savedCheckin = localStorage.getItem("activeCheckinId");
-    const savedShop = localStorage.getItem("activeShopId");
-
-    if (savedCheckin) setCheckinId(savedCheckin);
-    if (savedShop) setSelectedShop(savedShop);
-  }, []);
-*/
   const checkinMutation = useMutation({
     mutationFn: createCheckin,
     onSuccess: (data) => {
       const id = data.checkin_id;
-      setCheckinId(id);
-
-      localStorage.setItem("activeCheckinId", id);
-      localStorage.setItem("activeShopId", selectedShop);
+      startCheckin({
+        checkinId: id,
+        shopId: selectedShop,
+      });
 
       toast.success("Check-in started");
     },
@@ -85,7 +68,14 @@ export default function CheckIn() {
           variation="primary"
           size="md"
           disabled={!selectedShop || checkinMutation.isPending}
-          onClick={() => checkinMutation.mutate({ shop_id: selectedShop })}
+          onClick={() => {
+            if (checkinId) {
+              toast.error("You are already checked in to a shop");
+              return;
+            }
+
+            checkinMutation.mutate({ shop_id: selectedShop });
+          }}
         >
           {checkinMutation.isPending ? "Checking in..." : "Check-In"}
         </Button>

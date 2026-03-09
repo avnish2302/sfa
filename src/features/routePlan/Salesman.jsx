@@ -5,7 +5,6 @@ import SalesmanAddedTable from "../routePlan/SalesmanAddedTable";
 export default function Salesman() {
   return (
     <Wrapper>
-      <ShopName />
       <SalesmanAddedTable />
     </Wrapper>
   );

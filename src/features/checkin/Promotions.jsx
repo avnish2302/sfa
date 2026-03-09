@@ -7,22 +7,14 @@ import {savePromotions} from "../../services/apiPromotions"
 import { useMutation } from "@tanstack/react-query";
 
 export default function Promotions({checkinId}) {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isValid },
-  } = useForm({ mode: "onChange" });
+  const {register, handleSubmit, reset, formState: { isValid }} = useForm({ mode: "onChange" })
 
-   // TanStack mutation
   const promotionsMutation = useMutation({
     mutationFn: savePromotions,
-
     onSuccess: () => {
       toast.success("Saved successfully!");
       reset();
     },
-
     onError: (error) => toast.error(error.message),
   });
 

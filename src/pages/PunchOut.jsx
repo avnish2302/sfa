@@ -7,40 +7,34 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPunchSummary, punchOut } from "../services/apiPunch";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Spinner from "../components/Spinner";
+import useActiveCheckin from "../hooks/useActiveCheckin";
 
 export default function PunchOut() {
+  const { checkinId } = useActiveCheckin();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const {
-    data: summary,
-    isLoading,
-    isError,
-  } = useQuery({
+  const {data: summary, isLoading, isError} = useQuery({
     queryKey: ["punchSummary"],
     queryFn: getPunchSummary,
-  });
+  })
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { isValid, errors },
-  } = useForm({
+  const { register, handleSubmit, watch, reset, formState: { isValid, errors },} = useForm({
     mode: "onChange",
     shouldUnregister: true,
-  });
+  })
 
+const image = watch("image")
+const ownVehicle = summary?.ownVehicle   // comes from backend summary
 
 const punchOutMutation = useMutation({
   mutationFn: punchOut,
    onSuccess: () => {
     toast.success("Punch Out Successful!");
-
-    // instantly update sidebar state
+    // React Query stores the result in cache
+    // After punching out, there is no active punch session anymore, so we update the cache
     queryClient.setQueryData(["punchSummary"], null);
-
     reset();
     navigate("/punchin", { replace: true });
   },
@@ -49,30 +43,30 @@ const punchOutMutation = useMutation({
   },
 });
 
-  const image = watch("image");
+const onSubmit = (data) => {
+    if (checkinId) {
+    toast.error("Please checkout from shop before punching out");
+    return
+  }
 
-  const ownVehicle = summary?.ownVehicle;   // comes from backend summary
-
-  const onSubmit = (data) => {
-    punchOutMutation.mutate({
-      end_odometer_reading: ownVehicle ? Number(data.odometer) : null,
-      shops_visited: summary?.shopsVisited ?? 0,
-      shops_pending: summary?.shopsPending ?? 0,
-    });
-  };
-
+  punchOutMutation.mutate({
+    end_odometer_reading: ownVehicle ? Number(data.odometer) : null,
+    shops_visited: summary?.shopsVisited ?? 0,
+    shops_pending: summary?.shopsPending ?? 0,
+  })
+}
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000);
+    }, 1000)
 
     return () => clearInterval(timer);
   }, []);
 
-  if (isLoading) return <p>Loading summary...</p>;
-  if (isError) return <p>Please punch in first.</p>;
+  if (isLoading) return <Spinner/>
+  if (isError) navigate("/punchin")
 
   return (
     <Wrapper>

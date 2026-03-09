@@ -5,11 +5,11 @@ import styled from "styled-components";
 import { toast } from "react-toastify";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getCheckinSummary, checkout } from "../services/apiCheckout";
+import useActiveCheckin from "../hooks/useActiveCheckin";
 
 export default function CheckOut() {
-  const checkinId = localStorage.getItem("activeCheckinId");
-  const shopId = localStorage.getItem("activeShopId");
-
+  const { checkinId, shopId, clearCheckin } = useActiveCheckin();
+  
   const { data: summary, isLoading } = useQuery({
     queryKey: ["checkinSummary", checkinId],
     queryFn: () => getCheckinSummary(checkinId),
@@ -18,10 +18,9 @@ export default function CheckOut() {
 
   const checkoutMutation = useMutation({
     mutationFn: () => checkout(checkinId),
-    onSuccess: () => {
-      localStorage.removeItem("activeCheckinId");
-      localStorage.removeItem("activeShopId");
 
+    onSuccess: () => {
+      clearCheckin();
       toast.success("Checkout successful!");
     },
     onError: (error) => {
@@ -30,6 +29,11 @@ export default function CheckOut() {
   });
 
   const handleSave = () => {
+    if (!checkinId) {
+      toast.error("No active check-in");
+      return;
+    }
+
     checkoutMutation.mutate();
   };
 
@@ -38,6 +42,7 @@ export default function CheckOut() {
   return (
     <Wrapper>
       <Title>Check-Out</Title>
+
       <ShopName selectedShop={shopId} />
 
       <Card width="100rem">
@@ -68,13 +73,15 @@ export default function CheckOut() {
             onClick={handleSave}
             disabled={checkoutMutation.isPending}
           >
-            Save
+            {checkoutMutation.isPending ? "Saving..." : "Save"}
           </Button>
         </ButtonWrapper>
       </Card>
     </Wrapper>
   );
 }
+
+/* ================= STYLES ================= */
 
 const Wrapper = styled.div`
   display: flex;
@@ -99,6 +106,7 @@ const Section = styled.section`
     margin-bottom: 1.2rem;
     text-decoration: underline;
   }
+
   p {
     font-size: 1.8rem;
     color: var(--color-brown-600);
@@ -116,45 +124,7 @@ const GridItem = styled.div`
   color: var(--color-brown-600);
 `;
 
-const ShopStats = styled.div`
-  display: flex;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-`;
-
-const Stat = styled.div`
-  text-align: center;
-  margin-right: 2rem;
-`;
-
-const StatLabel = styled.p`
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--color-brown-700);
-  margin-bottom: 1.2rem;
-  text-decoration: underline;
-`;
-
-const StatValue = styled.p`
-  font-size: 2rem;
-
-  color: var(--color-brown-700);
-`;
-
 const ButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
-`;
-
-const Timestamp = styled.div`
-  text-align: center;
-  font-size: 1.2rem;
-  color: var(--color-zinc-400);
-`;
-
-const Input = styled.input`
-  width: 100px;
-  padding: 0.6rem;
-  text-align: center;
-  border: 1px solid var(--border-color);
 `;
