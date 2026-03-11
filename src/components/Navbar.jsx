@@ -3,8 +3,17 @@ import Button from "./Button";
 import { useUser } from "../hooks/useUser";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import { getPunchSummary } from "../services/apiPunch";
 
 export default function Navbar() {
+  const { data: punchSummary } = useQuery({
+  queryKey: ["punchSummary"],
+  queryFn: getPunchSummary,
+  retry: false,
+});
+const punchedIn = !!punchSummary;
+
   const { data: user, isLoading, isError } = useUser();
 
   const navigate = useNavigate();
@@ -29,7 +38,9 @@ export default function Navbar() {
         {!isLoading && !isError && user && (
           <Username>{user.name}</Username>
         )}
-
+<PunchStatus $active={punchedIn}>
+  (Punch Status: {punchedIn ?"Active" : "Inactive"})
+</PunchStatus>
         <Button variation="delete" size="sm" onClick={handleLogout}>
           Logout
         </Button>
@@ -61,4 +72,10 @@ const ActionContainer = styled.div`
 const Username = styled.span`
   font-size: 1.4rem;
   color: var(--text-primary);
+`;
+const PunchStatus = styled.span`
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: ${({ $active }) =>
+    $active ? "var(--color-green-800)" : "var(--color-grey-500)"};
 `;

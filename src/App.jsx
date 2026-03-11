@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import PunchRequiredRoutes from "./components/PunchRequiredRoutes";
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 export default function App() {
   const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ export default function App() {
     <>
       <GlobalStyles />
       <QueryClientProvider client={queryClient}>
+        <ReactQueryDevtools initialIsOpen={false} />
         <ToastContainer position="top-right" autoClose={3000} />
         <VehicleProvider>
           <BrowserRouter>

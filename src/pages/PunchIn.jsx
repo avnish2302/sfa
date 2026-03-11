@@ -9,34 +9,27 @@ import { useNavigate } from "react-router-dom";
 
 export default function PunchIn() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()                 // access tanstack query's global cache
 
-  const {
-    register,                       // connect inputs to form
-    handleSubmit,                   // handle submit events
-    watch,                          // obsereve field values
-    reset,                          // clear form
-    formState: { isValid, errors }, // validation status and validation errors
-  } = useForm({
-    mode: "onChange",               // validation runs while typing
-    shouldUnregister: true,         // when a field dissappears (like conditional fields) its value is removed from form state
+  const {register, handleSubmit, watch, reset, formState: { isValid, errors }} = useForm({
+    mode: "onChange",                                  // validation runs while typing
+    shouldUnregister: true,                            // when a field dissappears (like conditional fields) its value is removed from form state
   })
 
-  const ownVehicle = watch("ownVehicle"); // watch() subscribe to field changes, if user selects Own Vehicle = yes, then ownVehicle = "yes"
+  const ownVehicle = watch("ownVehicle")               // watch() subscribe to field changes, if user selects Own Vehicle = yes, then ownVehicle = "yes"
   const image = watch("image")
 
-  const mutation = useMutation({
+  const mutation = useMutation({                       // tanstack/react query mutation : handle API requests that modify server data
     mutationFn: punchIn,
-    onSuccess: () => {
+    onSuccess: () => {                                 // server returns success -> toast notification -> refresh punch summary -> reset form -> redirect to checkin. refresh because sidebar and navbar depend on punch status
       toast.success("Punch In Successful!")
-      // refresh sidebar state
-      queryClient.invalidateQueries(["punchSummary"]);
+      queryClient.invalidateQueries(["punchSummary"])  // refresh punch summary everywhere in app, eg sidebar, navbar, etc. queryKey : ["punchSummary"] was created in sidebar
       reset()
       navigate("/checkin")
     },
     onError: (error) => {
       toast.error(error.message);
-    },
+    }
   })
 
   const onSubmit = (data) => {
@@ -53,6 +46,7 @@ export default function PunchIn() {
         <Title>Punch In</Title>
 
         <Form onSubmit={handleSubmit(onSubmit)}>
+          
           <FormGroup>
             <Label>Own Vehicle?</Label>
             <Select {...register("ownVehicle", { required: true })}>
@@ -62,54 +56,47 @@ export default function PunchIn() {
             </Select>
           </FormGroup>
 
-          {ownVehicle === "yes" && (
-            <>
+          {
+            ownVehicle === "yes" && (
+              <>
               <FormGroup>
                 <Label>Vehicle Type</Label>
                 <Select
-                  {...register("vehicleType", {
-                    required: "Vehicle type is required",
-                  })}
-                >
+                  {...register("vehicleType", {required: "Vehicle type is required"})}>
                   <option value="">Select</option>
                   <option>Bike</option>
                   <option>Car</option>
                 </Select>
               </FormGroup>
 
+
               <FormGroup>
                 <Label>Odometer Reading (KM)</Label>
                 <Input
                   type="number"
-                  {...register("odometerReading", {
-                    required: "Odometer reading is required",
-                  })}
+                  {...register("odometerReading", {required: "Odometer reading is required"})}
                 />
               </FormGroup>
 
               <FormGroup>
                 <Label>Upload Image</Label>
-
                 <UploadWrapper htmlFor="fileInput">
                   <HiddenFileInput
                     id="fileInput"
                     type="file"
                     accept="image/*"
-                    {...register("image", {
-                      required: "Image is required",
-                    })}
+                    {...register("image", {required: "Image is required"})}
                   />
-
                   <UploadButton>
                     {image?.length ? "Choose Another" : "Choose Image"}
                   </UploadButton>
                 </UploadWrapper>
-
                 {image?.length > 0 && <FileName>{image[0].name}</FileName>}
                 {errors.image && <ErrorText>{errors.image.message}</ErrorText>}
               </FormGroup>
-            </>
-          )}
+              </>
+           )
+          }
 
           <Button
             type="submit"

@@ -30,7 +30,6 @@ export default function CheckIn() {
         checkinId: id,
         shopId: selectedShop,
       });
-
       toast.success("Check-in started");
     },
     onError: (error) => {
@@ -55,6 +54,7 @@ export default function CheckIn() {
     { key: "promotions", label: "Promotions" },
     { key: "collection", label: "Collection" },
   ];
+
   return (
     <Wrapper>
       <Title>Check-In</Title>
@@ -73,8 +73,29 @@ export default function CheckIn() {
               toast.error("You are already checked in to a shop");
               return;
             }
+            if (!navigator.geolocation) {
+              toast.error("Geolocation not supported by your browser");
+              return;
+            }
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
 
-            checkinMutation.mutate({ shop_id: selectedShop });
+                console.log("Latitude:", latitude);
+                console.log("Longitude:", longitude);
+                
+                checkinMutation.mutate({
+                  shop_id: selectedShop,
+                  latitude,
+                  longitude
+                });
+              },
+              (error) => {
+                toast.error("Unable to get location. Please enable GPS");
+                console.error(error);
+              },
+            );
           }}
         >
           {checkinMutation.isPending ? "Checking in..." : "Check-In"}

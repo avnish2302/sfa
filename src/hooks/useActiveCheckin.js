@@ -7,23 +7,23 @@ export default function useActiveCheckin() {
   const { data: activeCheckin } = useQuery({
     queryKey: ["activeCheckin"],
     queryFn: getActiveCheckin,
-  });
+  })
 
   const startCheckin = ({ checkinId, shopId }) => {
     queryClient.setQueryData(["activeCheckin"], {
       id: checkinId,
       shop_id: shopId,
-    });
-  };
+    })
+  }
 
   const clearCheckin = () => {
-    queryClient.setQueryData(["activeCheckin"], null);
-  };
+    queryClient.setQueryData(["activeCheckin"], null)
+  }
 
   return {
     checkinId: activeCheckin?.id || null,
     shopId: activeCheckin?.shop_id || null,
     startCheckin,
     clearCheckin,
-  };
+  }
 }
