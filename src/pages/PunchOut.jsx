@@ -15,58 +15,68 @@ export default function PunchOut() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const {data: summary, isLoading, isError} = useQuery({
+  const {
+    data: summary,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["punchSummary"],
     queryFn: getPunchSummary,
-  })
+  });
 
-  const { register, handleSubmit, watch, reset, formState: { isValid, errors },} = useForm({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { isValid, errors },
+  } = useForm({
     mode: "onChange",
     shouldUnregister: true,
-  })
+  });
 
-const image = watch("image")
-const ownVehicle = summary?.ownVehicle   // comes from backend summary
+  const image = watch("image");
+  const ownVehicle = Boolean(summary?.ownVehicle); // comes from backend summary
 
-const punchOutMutation = useMutation({
-  mutationFn: punchOut,
-   onSuccess: () => {
-    toast.success("Punch Out Successful!");
-    // React Query stores the result in cache
-    // After punching out, there is no active punch session anymore, so we update the cache
-    queryClient.setQueryData(["punchSummary"], null);
-    reset();
-    navigate("/punchin", { replace: true });
-  },
-  onError: (error) => {
-    toast.error(error.message);
-  },
-});
-
-const onSubmit = (data) => {
+  const punchOutMutation = useMutation({
+    mutationFn: punchOut,
+    onSuccess: () => {
+      toast.success("Punch Out Successful!");
+      // React Query stores the result in cache
+      // After punching out, there is no active punch session anymore, so we update the cache
+      queryClient.setQueryData(["punchSummary"], null);
+      reset();
+      navigate("/punchin", { replace: true });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+  
+  const onSubmit = (data) => {
     if (checkinId) {
-    toast.error("Please checkout from shop before punching out");
-    return
-  }
+      toast.error("Please checkout from shop before punching out");
+      return;
+    }
 
-  punchOutMutation.mutate({
-    end_odometer_reading: ownVehicle ? Number(data.odometer) : null,
-    shops_visited: summary?.shopsVisited ?? 0,
-    shops_pending: summary?.shopsPending ?? 0,
-  })
-}
+    punchOutMutation.mutate({
+      end_odometer_reading: ownVehicle ? Number(data.odometer) : null,
+      shops_visited: summary?.shopsVisited ?? 0,
+      shops_pending: summary?.shopsPending ?? 0,
+    });
+  };
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 1000)
+    }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  if (isLoading) return <Spinner/>
-  if (isError) navigate("/punchin")
+  if (isLoading) return <Spinner />;
+  if (isError) navigate("/punchin");
 
   return (
     <Wrapper>
@@ -95,10 +105,10 @@ const onSubmit = (data) => {
               <GridItem>: </GridItem>
 
               <GridItem>Shops Visited</GridItem>
-              <GridItem>: {summary?.shopsVisited}</GridItem>
+              <GridItem>: {summary?.shopsVisited ?? 0}</GridItem>
 
               <GridItem>Shops not visited</GridItem>
-              <GridItem>: {summary?.shopsPending}</GridItem>
+              <GridItem>: {summary?.shopsPending ?? 0}</GridItem>
             </Grid>
           </Section>
 
@@ -147,7 +157,7 @@ const onSubmit = (data) => {
               size="md"
               disabled={ownVehicle ? !isValid : false}
             >
-              Save
+              Punch Out
             </Button>
           </ButtonWrapper>
         </Form>

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { useShops } from "../hooks/useShops";
 
-export default function ShopName({ selectedShop, setSelectedShop }) {
+export default function ShopName({ selectedShop, setSelectedShop, disabled }) {
   const { data: shops, isLoading, isError } = useShops();
 
   if (isLoading) return <p>Loading shops...</p>;
@@ -10,11 +10,20 @@ export default function ShopName({ selectedShop, setSelectedShop }) {
   return (
     <Wrapper>
       <Select
-        value={selectedShop}
-        onChange={(e) => setSelectedShop(e.target.value)}
-        disabled={!setSelectedShop}
+        value={selectedShop?.id || ""}
+        disabled={disabled}
+        onChange={(e) => {
+          const id = Number(e.target.value);
+          const shop = shops.find((s) => s.id === id);
+
+          setSelectedShop?.({
+            id: shop.id,
+            name: shop.shop_name,
+          });
+        }}
       >
         <option value="">Select Shop</option>
+
         {shops.map((shop) => (
           <option key={shop.id} value={shop.id}>
             {shop.shop_name}

@@ -1,12 +1,8 @@
-export async function saveShowcase({ checkinId, items }) {
-  const token = localStorage.getItem("token");
+import { fetchWithAuth } from "./fetchWithAuth";
 
-  const res = await fetch("http://localhost:5000/api/showcase", {
+export async function saveShowcase({ checkinId, items }) {
+  const res = await fetchWithAuth("/api/showcase", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({
       checkin_id: checkinId,
       items,
@@ -14,7 +10,6 @@ export async function saveShowcase({ checkinId, items }) {
   });
 
   const data = await res.json();
-
   if (!res.ok) throw new Error(data.message);
 
   return data;

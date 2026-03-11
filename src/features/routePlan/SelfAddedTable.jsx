@@ -5,8 +5,10 @@ import Table from "../../components/Table";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import ShopName from "../../components/ShopName";
 
 export default function SelfAddedTable() {
+  const [selectedShop, setSelectedShop] = useState(null);
   const [rows, setRows] = useState([]);
 
   const {
@@ -18,16 +20,16 @@ export default function SelfAddedTable() {
     mode: "onChange",
   });
 
-
-  const createRow = (prevRows, { planDate, location }) => {
-    if (!planDate || !location) return prevRows;
+  const createRow = (prevRows, { planDate, shop }) => {
+    if (!planDate || !shop) return prevRows;
 
     return [
       ...prevRows,
       {
         id: prevRows.length + 1,
         planDate,
-        location,
+        location: shop.name,
+        shopId: shop.id,
         km: "",
         gps: "",
         status: "Pending",
@@ -37,7 +39,7 @@ export default function SelfAddedTable() {
 
   const updateRow = (prevRows, id, field, value) => {
     return prevRows.map((row) =>
-      row.id === id ? { ...row, [field]: value } : row
+      row.id === id ? { ...row, [field]: value } : row,
     );
   };
 
@@ -60,8 +62,10 @@ export default function SelfAddedTable() {
   /* ========================= */
 
   const onSubmit = (data) => {
-    setRows((prev) => createRow(prev, data));
+    setRows((prev) => createRow(prev, { ...data, shop: selectedShop }));
+
     reset();
+    setSelectedShop(null);
   };
 
   const handleChange = (id, field, value) => {
@@ -91,6 +95,7 @@ export default function SelfAddedTable() {
                 />
               </FormGroup>
 
+              {/* 
               <FormGroup>
                 <Label>Location</Label>
                 <Select
@@ -106,14 +111,18 @@ export default function SelfAddedTable() {
                   <option value="Faridabad">Faridabad</option>
                 </Select>
               </FormGroup>
+              */}
             </FormGrid>
-
+            <ShopName
+              selectedShop={selectedShop}
+              setSelectedShop={setSelectedShop}
+            />
             <Center>
               <Button
                 variation="primary"
                 size="md"
                 type="submit"
-                disabled={!isValid}
+                disabled={!isValid || !selectedShop?.id}
               >
                 Add
               </Button>
@@ -175,11 +184,7 @@ export default function SelfAddedTable() {
             </Table>
 
             <Center>
-              <Button
-                variation="primary"
-                size="md"
-                onClick={handleSend}
-              >
+              <Button variation="primary" size="md" onClick={handleSend}>
                 Send for Approval
               </Button>
             </Center>

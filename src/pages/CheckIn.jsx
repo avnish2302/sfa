@@ -20,7 +20,9 @@ export default function CheckIn() {
   const navigate = useNavigate();
   const { tab = "main" } = useParams();
   const { checkinId, shopId, startCheckin } = useActiveCheckin();
-  const [selectedShop, setSelectedShop] = useState(shopId || "");
+  const [selectedShop, setSelectedShop] = useState(
+    shopId ? { id: shopId } : null,
+  );
 
   const checkinMutation = useMutation({
     mutationFn: createCheckin,
@@ -67,7 +69,7 @@ export default function CheckIn() {
         <Button
           variation="primary"
           size="md"
-          disabled={!selectedShop || checkinMutation.isPending}
+          disabled={!selectedShop?.id || checkinMutation.isPending}
           onClick={() => {
             if (checkinId) {
               toast.error("You are already checked in to a shop");
@@ -84,11 +86,11 @@ export default function CheckIn() {
 
                 console.log("Latitude:", latitude);
                 console.log("Longitude:", longitude);
-                
+
                 checkinMutation.mutate({
-                  shop_id: selectedShop,
+                  shop_id: selectedShop.id,
                   latitude,
-                  longitude
+                  longitude,
                 });
               },
               (error) => {

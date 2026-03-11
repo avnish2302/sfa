@@ -1,28 +1,16 @@
-export async function getProducts() {
-  const token = localStorage.getItem("token");
+import { fetchWithAuth } from "./fetchWithAuth";
 
-  const res = await fetch("http://localhost:5000/api/products", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function getProducts() {
+  const res = await fetchWithAuth("/api/products");
 
   const data = await res.json();
-
   if (!res.ok) throw new Error(data.message);
 
   return data;
 }
 
-
 export async function getCategories() {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch("http://localhost:5000/api/products/categories", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const res = await fetchWithAuth("/api/products/categories");
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.message);

@@ -1,11 +1,10 @@
+import { fetchWithAuth } from "./fetchWithAuth";
+
 export async function getShops() {
-  const token = localStorage.getItem("token");
+  const res = await fetchWithAuth("/api/shops");
 
-  const res = await fetch("http://localhost:5000/api/shops", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
 
-  if (!res.ok) throw new Error("Failed to fetch shops");
-
-  return res.json();
+  return data;
 }

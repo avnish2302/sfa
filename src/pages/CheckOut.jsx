@@ -43,7 +43,7 @@ export default function CheckOut() {
     <Wrapper>
       <Title>Check-Out</Title>
 
-      <ShopName selectedShop={shopId} />
+      <ShopName selectedShop={{id : shopId}} disabled />
 
       <Card width="100rem">
         <Section>

@@ -8,11 +8,11 @@ import { getPunchSummary } from "../services/apiPunch";
 
 export default function Navbar() {
   const { data: punchSummary } = useQuery({
-  queryKey: ["punchSummary"],
-  queryFn: getPunchSummary,
-  retry: false,
-});
-const punchedIn = !!punchSummary;
+    queryKey: ["punchSummary"],
+    queryFn: getPunchSummary,
+    retry: false,
+  });
+  const punchedIn = !!punchSummary;
 
   const { data: user, isLoading, isError } = useUser();
 
@@ -35,12 +35,10 @@ const punchedIn = !!punchSummary;
       <Heading>SFA System</Heading>
 
       <ActionContainer>
-        {!isLoading && !isError && user && (
-          <Username>{user.name}</Username>
-        )}
-<PunchStatus $active={punchedIn}>
-  (Punch Status: {punchedIn ?"Active" : "Inactive"})
-</PunchStatus>
+        {!isLoading && !isError && user && <Username>{user.name}</Username>}
+        <PunchStatus $active={punchedIn}>
+          (Punch Status: {punchedIn ? "Active" : "Inactive"})
+        </PunchStatus>
         <Button variation="delete" size="sm" onClick={handleLogout}>
           Logout
         </Button>

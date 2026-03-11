@@ -1,12 +1,8 @@
-export async function saveOwnInventory({ checkinId, items }) {
-  const token = localStorage.getItem("token");
+import { fetchWithAuth } from "./fetchWithAuth";
 
-  const res = await fetch("http://localhost:5000/api/inventory/own", {
+export async function saveOwnInventory({ checkinId, items }) {
+  const res = await fetchWithAuth("/api/inventory/own", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({
       checkin_id: checkinId,
       items,
@@ -14,22 +10,14 @@ export async function saveOwnInventory({ checkinId, items }) {
   });
 
   const data = await res.json();
-
   if (!res.ok) throw new Error(data.message);
 
   return data;
 }
 
-
 export async function saveCompetitorInventory({ checkinId, items }) {
-  const token = localStorage.getItem("token");
-
-  const res = await fetch("http://localhost:5000/api/inventory/competitor", {
+  const res = await fetchWithAuth("/api/inventory/competitor", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({
       checkin_id: checkinId,
       items,
@@ -37,7 +25,6 @@ export async function saveCompetitorInventory({ checkinId, items }) {
   });
 
   const data = await res.json();
-
   if (!res.ok) throw new Error(data.message);
 
   return data;
