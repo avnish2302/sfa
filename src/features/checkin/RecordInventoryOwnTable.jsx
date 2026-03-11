@@ -35,7 +35,8 @@ export default function RecordInventoryOwnTable({ rows, setRows }) {
 
   const handleAddRow = () => {
     if (!category || !product) return;
-    setRows([...rows, { ...emptyRow, product_id: product }]);
+    const selectedProduct = products.find((p) => p.id === Number(product));
+    setRows([...rows, { ...emptyRow, product_id: Number(product), product : selectedProduct?.name, }]);
   };
 
   const handleDeleteRow = (i) => {
