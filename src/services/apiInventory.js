@@ -29,3 +29,12 @@ export async function saveCompetitorInventory({ checkinId, items }) {
 
   return data;
 }
+
+export async function getOwnInventory(checkinId){
+  const res = await fetchWithAuth(`/api/inventory/${checkinId}`)
+  const data = await res.json()
+
+  if(!res.ok) throw new Error(data.message)
+
+  return data
+}

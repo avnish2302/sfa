@@ -2,11 +2,16 @@ import styled from "styled-components";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Table from "../../components/Table";
+import ShopName from "../../components/ShopName";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import getSalesmen from "../../services/apiUsers";
+import { createManagerRoutes } from "../../services/apiRoutes";
 
-export default function SalesmanAddedTable() {
+export default function SalesmanByManagerAddedTable() {
+  const [selectedShop, setSelectedShop] = useState(null);
   const [rows, setRows] = useState([]);
 
   const {
@@ -16,27 +21,37 @@ export default function SalesmanAddedTable() {
     formState: { isValid },
   } = useForm({ mode: "onChange" });
 
+  // fetch salesmen
+  const { data: salesmen = [] } = useQuery({
+    queryKey: ["salesmen"],
+    queryFn: getSalesmen,
+  });
 
-  const createRow = (prevRows, { planDate, salesman, location }) => {
-    if (!planDate || !salesman || !location) return prevRows;
+  const saveRoutesMutation = useMutation({
+    mutationFn: createManagerRoutes,
+    onSuccess: () => {
+      toast.success("Routes saved successfully");
+
+      setRows([]);
+      setSelectedShop(null);
+      reset();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const createRow = (prevRows, { planDate, salesman, shop }) => {
+    if (!planDate || !salesman || !shop) return prevRows;
 
     return [
       ...prevRows,
       {
         id: prevRows.length + 1,
         planDate,
-        salesman,
-        location,
-        km: "",
-        gps: "",
+        salesmanId: salesman,
+        location: shop.name,
+        shopId: shop.id,
       },
     ];
-  };
-
-  const updateRow = (prevRows, id, field, value) => {
-    return prevRows.map((row) =>
-      row.id === id ? { ...row, [field]: value } : row
-    );
   };
 
   const deleteRow = (prevRows, id) => {
@@ -48,19 +63,12 @@ export default function SalesmanAddedTable() {
     }));
   };
 
-  const saveAll = (prevRows) => {
-    console.log("Saved Rows:", prevRows);
-    return prevRows;
-  };
-
-
   const onSubmit = (data) => {
-    setRows((prev) => createRow(prev, data));
-    reset();
-  };
+    setRows((prev) =>
+      createRow(prev, { ...data, shop: selectedShop })
+    );
 
-  const handleChange = (id, field, value) => {
-    setRows((prev) => updateRow(prev, id, field, value));
+    setSelectedShop(null);
   };
 
   const handleDelete = (id) => {
@@ -68,8 +76,18 @@ export default function SalesmanAddedTable() {
   };
 
   const handleSave = () => {
-    setRows((prev) => saveAll(prev));
-    toast.success("Saved successfully!");
+    if (!rows.length) {
+      toast.error("No routes added");
+      return;
+    }
+
+    const payload = {
+      planDate: rows[0].planDate,
+      userId: rows[0].salesmanId,
+      shops: rows.map((r) => r.shopId),
+    };
+
+    saveRoutesMutation.mutate(payload);
   };
 
   return (
@@ -77,7 +95,9 @@ export default function SalesmanAddedTable() {
       <Card width="100rem">
         <form onSubmit={handleSubmit(onSubmit)}>
           <Section>
+
             <FormGrid>
+
               <FormGroup>
                 <Label>Plan Date</Label>
                 <Input
@@ -95,39 +115,33 @@ export default function SalesmanAddedTable() {
                   <option value="" disabled>
                     Select Salesman
                   </option>
-                  <option value="Salesman1">Salesman 1</option>
-                  <option value="Salesman2">Salesman 2</option>
-                  <option value="Salesman3">Salesman 3</option>
+
+                  {salesmen.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
                 </Select>
               </FormGroup>
 
-              <FormGroup>
-                <Label>Location</Label>
-                <Select
-                  {...register("location", { required: true })}
-                  defaultValue=""
-                >
-                  <option value="" disabled>
-                    Select Location
-                  </option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Gurgaon">Gurgaon</option>
-                  <option value="Noida">Noida</option>
-                  <option value="Faridabad">Faridabad</option>
-                </Select>
-              </FormGroup>
             </FormGrid>
+
+            <ShopName
+              selectedShop={selectedShop}
+              setSelectedShop={setSelectedShop}
+            />
 
             <Center>
               <Button
                 variation="primary"
                 size="md"
                 type="submit"
-                disabled={!isValid}
+                disabled={!isValid || !selectedShop?.id}
               >
                 Add
               </Button>
             </Center>
+
           </Section>
         </form>
       </Card>
@@ -135,14 +149,11 @@ export default function SalesmanAddedTable() {
       {rows.length > 0 && (
         <Card width="100rem">
           <Section>
+
             <Table>
               <Table.Header>
                 <th>S No.</th>
-                <th>Plan Date</th>
-                <th>Salesman</th>
                 <th>Location</th>
-                <th>Km.</th>
-                <th>GPS</th>
                 <th>Action</th>
               </Table.Header>
 
@@ -151,28 +162,7 @@ export default function SalesmanAddedTable() {
                 render={(row) => (
                   <Table.Row key={row.id}>
                     <Table.Cell>{row.id}</Table.Cell>
-                    <Table.Cell>{row.planDate}</Table.Cell>
-                    <Table.Cell>{row.salesman}</Table.Cell>
                     <Table.Cell>{row.location}</Table.Cell>
-
-                    <Table.Cell>
-                      <Table.Input
-                        type="number"
-                        value={row.km}
-                        onChange={(e) =>
-                          handleChange(row.id, "km", e.target.value)
-                        }
-                      />
-                    </Table.Cell>
-
-                    <Table.Cell>
-                      <Table.Input
-                        value={row.gps}
-                        onChange={(e) =>
-                          handleChange(row.id, "gps", e.target.value)
-                        }
-                      />
-                    </Table.Cell>
 
                     <Table.Cell>
                       <Button
@@ -183,9 +173,11 @@ export default function SalesmanAddedTable() {
                         Delete
                       </Button>
                     </Table.Cell>
+
                   </Table.Row>
                 )}
               />
+
             </Table>
 
             <Center>
@@ -193,10 +185,12 @@ export default function SalesmanAddedTable() {
                 variation="primary"
                 size="md"
                 onClick={handleSave}
+                disabled={saveRoutesMutation.isPending}
               >
-                Save
+                {saveRoutesMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </Center>
+
           </Section>
         </Card>
       )}
@@ -238,24 +232,10 @@ const Input = styled.input`
   padding: 0.8rem 1.2rem;
   border: 1px solid var(--border-color);
   background-color: var(--bg-main);
-
-  font-size: 1.4rem;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-brown-600);
-  }
 `;
 
 const Select = styled.select`
   padding: 0.8rem 1.2rem;
   border: 1px solid var(--border-color);
   background-color: var(--bg-main);
-  font-size: 1.4rem;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-brown-600);
-  }
 `;

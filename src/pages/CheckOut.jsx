@@ -6,14 +6,40 @@ import { toast } from "react-toastify";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getCheckinSummary, checkout } from "../services/apiCheckout";
 import useActiveCheckin from "../hooks/useActiveCheckin";
+import { getPromotions } from "../services/apiPromotions";
+import { useState } from "react";
+import Modal from "../components/Modal";
+import { getOwnInventory } from "../services/apiInventory";
+import { getCollection } from "../services/apiCollection";
 
 export default function CheckOut() {
   const { checkinId, shopId, clearCheckin } = useActiveCheckin();
-  
+  const [showPromotion, setShowPromotion] = useState(false);
+  const [showInventory, setShowInventory] = useState(false);
+  const [showCollection, setShowCollection] = useState(false);
+
   const { data: summary, isLoading } = useQuery({
     queryKey: ["checkinSummary", checkinId],
     queryFn: () => getCheckinSummary(checkinId),
     enabled: !!checkinId,
+  });
+
+  const { data: promotions = [] } = useQuery({
+    queryKey: ["promotions", checkinId],
+    queryFn: () => getPromotions(checkinId),
+    enabled: showPromotion && !!checkinId,
+  });
+
+  const { data: inventory = [] } = useQuery({
+    queryKey: ["inventory", checkinId],
+    queryFn: () => getOwnInventory(checkinId),
+    enabled: showInventory && !!checkinId,
+  });
+
+  const { data: collection = [] } = useQuery({
+    queryKey: ["collection", checkinId],
+    queryFn: () => getCollection(checkinId),
+    enabled: showCollection && !!checkinId,
   });
 
   const checkoutMutation = useMutation({
@@ -40,44 +66,115 @@ export default function CheckOut() {
   if (isLoading) return <p>Loading...</p>;
 
   return (
-    <Wrapper>
-      <Title>Check-Out</Title>
+    <>
+      <Wrapper>
+        <Title>Check-Out</Title>
 
-      <ShopName selectedShop={{id : shopId}} disabled />
+        <ShopName selectedShop={{ id: shopId }} disabled />
 
-      <Card width="100rem">
-        <Section>
-          <h2>Activity Summary</h2>
+        <Card width="100rem">
+          <Section>
+            <h2>Activity Summary</h2>
 
-          <Grid>
-            <GridItem>Entered Inventory</GridItem>
-            <GridItem>: {summary?.inventoryEntered ?? 0}</GridItem>
+            <Grid>
+              <GridItem>Entered Inventory</GridItem>
+              <GridItem>
+                :{" "}
+                <ViewLink onClick={() => setShowInventory(true)}>
+                  Click to view Inventory (Own)
+                </ViewLink>
+              </GridItem>
 
-            <GridItem>Collected Cash</GridItem>
-            <GridItem>: {summary?.cashCollected ?? 0} Rs</GridItem>
+              <GridItem>Collected Cash</GridItem>
+              <GridItem>
+                :{" "}
+                <ViewLink onClick={() => setShowCollection(true)}>
+                  Click to view collection
+                </ViewLink>
+              </GridItem>
 
-            <GridItem>Promotion Given</GridItem>
-            <GridItem>:</GridItem>
-          </Grid>
-        </Section>
+              <GridItem>Promotion Given</GridItem>
+              <GridItem>
+                :{" "}
+                <ViewLink onClick={() => setShowPromotion(true)}>
+                  Click to view promotion
+                </ViewLink>
+              </GridItem>
+            </Grid>
+          </Section>
 
-        <Section>
-          <h2>Pending</h2>
-          <p>1. No collections</p>
-        </Section>
+          <Section>
+            <h2>Pending</h2>
+            <p>1. No collections</p>
+          </Section>
 
-        <ButtonWrapper>
-          <Button
-            variation="primary"
-            size="md"
-            onClick={handleSave}
-            disabled={checkoutMutation.isPending}
-          >
-            {checkoutMutation.isPending ? "Saving..." : "Save"}
-          </Button>
-        </ButtonWrapper>
-      </Card>
-    </Wrapper>
+          <ButtonWrapper>
+            <Button
+              variation="primary"
+              size="md"
+              onClick={handleSave}
+              disabled={checkoutMutation.isPending}
+            >
+              {checkoutMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </ButtonWrapper>
+        </Card>
+      </Wrapper>
+
+      {showPromotion && (
+        <Modal
+          title="Promotions"
+          onClose={() => setShowPromotion(false)}
+          data={
+            promotions.length
+              ? {
+                  Party: promotions[0].party,
+                  Category: promotions[0].category,
+                  Brand: promotions[0].brand,
+                  SKU: promotions[0].sku,
+                  From: new Date(promotions[0].start_date).toLocaleDateString(),
+                  To: new Date(promotions[0].end_date).toLocaleDateString(),
+                  Scheme: promotions[0].scheme,
+                }
+              : { Info: "No Info" }
+          }
+        />
+      )}
+      {showInventory && (
+        <Modal
+          title="Entered Inventory"
+          onClose={() => setShowInventory(false)}
+          data={
+            inventory.length
+              ? inventory.reduce((acc, i) => {
+                  acc[`${i.product_name} - Receipt`] = i.receipt;
+                  acc[`${i.product_name} - Cases Warm`] = i.cases_warm;
+                  acc[`${i.product_name} - Cases Cold`] = i.cases_cold;
+                  acc[`${i.product_name} - Bottles Warm`] = i.bottles_warm;
+                  acc[`${i.product_name} - Bottles Cold`] = i.bottles_cold;
+                  return acc;
+                }, {})
+              : { Info: "No Info" }
+          }
+        />
+      )}
+      {showCollection && (
+        <Modal
+          title="Collections"
+          onClose={() => setShowCollection(false)}
+          data={
+            collection.length
+              ? {
+                  Invoice: collection[0].invoice_no,
+                  Remarks: collection[0].remark,
+                  "Payment Mode": collection[0].payment_mode,
+                  Amount: collection[0].amount,
+                }
+              : { Info: "No Info" }
+          }
+        />
+      )}
+    </>
   );
 }
 
@@ -127,4 +224,10 @@ const GridItem = styled.div`
 const ButtonWrapper = styled.div`
   display: flex;
   justify-content: center;
+`;
+
+const ViewLink = styled.span`
+  color: var(--color-brown-600);
+  cursor: pointer;
+  text-decoration: underline;
 `;

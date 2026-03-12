@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
 import Self from "../features/routePlan/Self";
 import SalesmanApprove from "../features/routePlan/SalesmanApprove";
-import Salesman from "../features/routePlan/Salesman";
+import SalesmanByManager from "../features/routePlan/SalesmanByManager";
 
 export default function Routes() {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ export default function Routes() {
     
         {tab === "self" && <Self/>}
         {tab === "salesman-approve" && <SalesmanApprove/>}
-        {tab === "salesman-by-manager" && <Salesman/>}
+        {tab === "salesman-by-manager" && <SalesmanByManager/>}
     
     </Wrapper>
   );

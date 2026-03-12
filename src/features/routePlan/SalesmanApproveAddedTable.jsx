@@ -3,73 +3,57 @@ import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Table from "../../components/Table";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getRoutes, approveRoutes } from "../../services/apiRoutes";
+import getSalesmen from "../../services/apiUsers";
 
 export default function SalesmanApproveAddedTable() {
-  const [rows, setRows] = useState([]);
+  const [planDate, setPlanDate] = useState("");
+  const [salesman, setSalesman] = useState("");
+  const [filters, setFilters] = useState(null);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isValid },
-  } = useForm({ mode: "onChange" });
+  // fetch salesmen
+  const { data: salesmen = [] } = useQuery({
+    queryKey: ["salesmen"],
+    queryFn: getSalesmen,
+  });
 
+  // fetch routes only after show clicked
+  const { data: rows = [] } = useQuery({
+    queryKey: ["routes", filters],
+    queryFn: () => getRoutes(filters.planDate, filters.salesman),
+    enabled: !!filters,
+  });
 
-  const createRow = (prevRows, { planDate, salesman }) => {
-    return [
-      ...prevRows,
-      {
-        id: prevRows.length + 1,
-        planDate,
-        salesman,
-        km: "",
-        gps: "",
-        status: "Pending",
-      },
-    ];
-  };
+  const approveMutation = useMutation({
+    mutationFn: approveRoutes,
+    onSuccess: () => {
+      toast.success("Routes approved") 
+      setPlanDate("")
+      setSalesman("");
+      setFilters(null);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
-  const updateRow = (prevRows, id, field, value) => {
-    return prevRows.map((row) =>
-      row.id === id ? { ...row, [field]: value } : row
-    );
-  };
+  const handleShow = () => {
+    if (!planDate || !salesman) {
+      toast.error("Select date and salesman");
+      return;
+    }
 
-  const deleteRow = (prevRows, id) => {
-    const filtered = prevRows.filter((row) => row.id !== id);
-
-    return filtered.map((row, index) => ({
-      ...row,
-      id: index + 1,
-    }));
-  };
-
-  const approveAll = (prevRows) => {
-    return prevRows.map((row) => ({
-      ...row,
-      status: "Approved",
-    }));
-  };
-
-
-  const onSubmit = (data) => {
-    setRows((prev) => createRow(prev, data));
-    reset();
-  };
-
-  const handleChange = (id, field, value) => {
-    setRows((prev) => updateRow(prev, id, field, value));
-  };
-
-  const handleDelete = (id) => {
-    setRows((prev) => deleteRow(prev, id));
+    setFilters({
+      planDate,
+      salesman,
+    });
   };
 
   const handleApprove = () => {
-    setRows((prev) => approveAll(prev));
-    toast.success("Approved successfully!");
+    approveMutation.mutate({
+      planDate: filters.planDate,
+      userId: filters.salesman,
+    });
   };
 
   return (
@@ -81,34 +65,31 @@ export default function SalesmanApproveAddedTable() {
               <Label>Plan Date</Label>
               <Input
                 type="date"
-                {...register("planDate", { required: true })}
+                value={planDate}
+                onChange={(e) => setPlanDate(e.target.value)}
               />
             </FormGroup>
 
             <FormGroup>
               <Label>Salesman</Label>
               <Select
-                {...register("salesman", { required: true })}
-                defaultValue=""
+                value={salesman}
+                onChange={(e) => setSalesman(e.target.value)}
               >
-                <option value="" disabled>
-                  Select Names
-                </option>
-                <option value="salesman1">Salesman 1</option>
-                <option value="salesman2">Salesman 2</option>
-                <option value="salesman3">Salesman 3</option>
+                <option value="">Select Salesman</option>
+
+                {salesmen.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
               </Select>
             </FormGroup>
           </FormGrid>
 
           <Center>
-            <Button
-              variation="primary"
-              size="md"
-              onClick={handleSubmit(onSubmit)}
-              disabled={!isValid}
-            >
-              Add
+            <Button variation="primary" size="md" onClick={handleShow}>
+              Show
             </Button>
           </Center>
         </Section>
@@ -120,47 +101,15 @@ export default function SalesmanApproveAddedTable() {
             <Table>
               <Table.Header>
                 <th>S No.</th>
-                <th>Salesman</th>
-                <th>Km.</th>
-                <th>GPS</th>
-                <th>Action</th>
+                <th>Location</th>
               </Table.Header>
 
               <Table.Body
                 data={rows}
-                render={(row) => (
+                render={(row, index) => (
                   <Table.Row key={row.id}>
-                    <Table.Cell>{row.id}</Table.Cell>
-                    <Table.Cell>{row.salesman}</Table.Cell>
-
-                    <Table.Cell>
-                      <Table.Input
-                        type="number"
-                        value={row.km}
-                        onChange={(e) =>
-                          handleChange(row.id, "km", e.target.value)
-                        }
-                      />
-                    </Table.Cell>
-
-                    <Table.Cell>
-                      <Table.Input
-                        value={row.gps}
-                        onChange={(e) =>
-                          handleChange(row.id, "gps", e.target.value)
-                        }
-                      />
-                    </Table.Cell>
-
-                    <Table.Cell>
-                      <Button
-                        variation="delete"
-                        size="sm"
-                        onClick={() => handleDelete(row.id)}
-                      >
-                        delete
-                      </Button>
-                    </Table.Cell>
+                    <Table.Cell>{index + 1}</Table.Cell>
+                    <Table.Cell>{row.shop_name}</Table.Cell>
                   </Table.Row>
                 )}
               />
@@ -171,6 +120,7 @@ export default function SalesmanApproveAddedTable() {
                 variation="primary"
                 size="md"
                 onClick={handleApprove}
+                disabled={approveMutation.isPending}
               >
                 Approve
               </Button>
@@ -214,23 +164,10 @@ const Input = styled.input`
   padding: 0.8rem 1.2rem;
   border: 1px solid var(--border-color);
   background-color: var(--bg-main);
-  font-size: 1.4rem;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-brown-600);
-  }
 `;
 
 const Select = styled.select`
   padding: 0.8rem 1.2rem;
   border: 1px solid var(--border-color);
   background-color: var(--bg-main);
-  font-size: 1.4rem;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-brown-600);
-  }
 `;

@@ -14,3 +14,12 @@ export async function saveCollection({ checkinId, data }) {
 
   return result;
 }
+
+export async function getCollection(checkinId){
+  const res = await fetchWithAuth(`/api/collection/${checkinId}`)
+  const data = await res.json()
+
+  if(!res.ok) throw new Error(data.message)
+
+  return data
+}

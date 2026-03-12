@@ -45,13 +45,34 @@ const sizes = {
 /* ===== Variations (Exact Amber Feel) ===== */
 
 const variations = {
-  primary: css`
+
+     primary: css`
+    background-color: #1d6617; /* amber-800 */
+    color: white;
+
+    &:hover {
+      background-color: #113f0d; /* amber-900 */
+    }
+
+  `,
+    primaryBlue: css`
+    background-color: #3240c0; /* amber-800 */
+    color: white;
+
+    &:hover {
+      background-color: #202a7e; /* amber-900 */
+    }
+
+  `,
+  
+  primaryOld: css`
     background-color: #92400e; /* amber-800 */
     color: white;
 
     &:hover {
       background-color: #78350f; /* amber-900 */
     }
+
   `,
 
   edit: css`

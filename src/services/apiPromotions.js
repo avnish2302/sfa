@@ -14,3 +14,13 @@ export async function savePromotions({ checkinId, data }) {
 
   return result;
 }
+
+export async function getPromotions(checkinId) {
+  const res = await fetchWithAuth(`/api/promotions/${checkinId}`);
+
+  const data = await res.json();
+
+  if (!res.ok) throw new Error(data.message);
+
+  return data;
+}
