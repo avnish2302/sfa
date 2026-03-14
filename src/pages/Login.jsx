@@ -1,56 +1,88 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 export default function Login() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const navigate = useNavigate();
+  const [loginError, setLoginError] = useState("");
 
-  const handleLogin = async () => {
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isValid, isSubmitting },
+  } = useForm({ mode: "onChange" });
+
+  const onSubmit = async (data) => {
+    setLoginError("");
+
     try {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Login failed")
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("refreshToken", data.refreshToken)
-      toast.success("Login successful")
-      navigate("/punchin")
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        // show error below password field
+        setError("password", {
+          type: "manual",
+          message: result.message || "Invalid credentials",
+        });
+        return;
+      }
+
+      localStorage.setItem("token", result.accessToken);
+      localStorage.setItem("refreshToken", result.refreshToken);
+
+      toast.success("Login successful");
+      navigate("/punchin");
     } catch (err) {
-      toast.error(err.message)
+      toast.error("Server error");
     }
-  }
+  };
 
   return (
     <Page>
       <Card>
         <Content>
           <Heading>Login</Heading>
+
           <Input
             placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            {...register("email", {
+              required: "Email is required",
+            })}
           />
+          {errors.email && <Error>{errors.email.message}</Error>}
+
           <Input
             type="password"
             placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            {...register("password", {
+              required: "Password is required",
+            })}
           />
-          <Button variation="primary" size="lg" onClick={handleLogin}>
-            Login
+          {errors.password && <Error>{errors.password.message}</Error>}
+
+          <Button
+            variation="primaryBrown"
+            size="lg"
+            onClick={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Logging in..." : "Login"}
           </Button>
         </Content>
       </Card>
     </Page>
-  )
+  );
 }
 
 const Content = styled.div`
@@ -67,20 +99,7 @@ const Page = styled.div`
   /* Slight warm tint for better separation */
   background-color: var(--color-brown-50);
 `;
-/*
-const Card = styled.div`
-  background-color: var(--bg-card);
-  padding: 3.2rem;
-  width: 34rem;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-brown-200);
 
-  display: flex;
-  flex-direction: column;
-  gap: 1.8rem;
-`;
-*/
 const Heading = styled.h2`
   font-size: 2.2rem;
   font-weight: 600;
@@ -104,19 +123,9 @@ const Input = styled.input`
   }
 `;
 
-/*
-const Button = styled.button`
-  width: 100%;
-  padding: 1rem;
-  border-radius: var(--radius-sm);
-  background-color: var(--color-brown-600);
-  color: white;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: var(--color-brown-500);
-  }
+const Error = styled.span`
+  font-size: 1.2rem;
+  color: #dc2626;
+  margin-top: -6px;
+  margin-bottom: 6px;
 `;
-
-*/

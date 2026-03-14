@@ -37,3 +37,30 @@ export async function punchOut(data) {
 
   return result;
 }
+
+export async function getTotalOwnInventory() {
+  const res = await fetchWithAuth("/api/punch/inventory");
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+
+  return data;
+}
+
+export async function getTotalCollection() {
+  const res = await fetchWithAuth("/api/punch/collection");
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+
+  return data;
+}
+
+export async function getTotalPromotions() {
+  const res = await fetchWithAuth("/api/punch/promotion");
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message);
+
+  return data;
+}

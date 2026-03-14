@@ -65,7 +65,7 @@ const variations = {
 
   `,
   
-  primaryOld: css`
+  primaryBrown: css`
     background-color: #92400e; /* amber-800 */
     color: white;
 

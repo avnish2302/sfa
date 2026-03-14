@@ -232,6 +232,12 @@ const Input = styled.input`
   padding: 0.8rem 1.2rem;
   border: 1px solid var(--border-color);
   background-color: var(--bg-main);
+  font-size: 1.4rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-brown-600);
+  }
 `;
 
 const Select = styled.select`

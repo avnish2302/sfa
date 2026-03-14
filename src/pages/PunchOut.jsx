@@ -9,11 +9,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import useActiveCheckin from "../hooks/useActiveCheckin";
+import Modal from "../components/Modal";
+import {
+  getTotalOwnInventory,
+  getTotalCollection,
+  getTotalPromotions,
+} from "../services/apiPunch"; // Add API service calls
 
 export default function PunchOut() {
   const { checkinId } = useActiveCheckin();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const [showInventory, setShowInventory] = useState(false);
+  const [showCollection, setShowCollection] = useState(false);
+  const [showPromotion, setShowPromotion] = useState(false);
 
   const {
     data: summary,
@@ -22,6 +32,24 @@ export default function PunchOut() {
   } = useQuery({
     queryKey: ["punchSummary"],
     queryFn: getPunchSummary,
+  });
+
+  const { data: totalInventory = [] } = useQuery({
+    queryKey: ["totalInventory"],
+    queryFn: getTotalOwnInventory,
+    enabled: showInventory,
+  });
+
+  const { data: totalCollection = [] } = useQuery({
+    queryKey: ["totalCollection"],
+    queryFn: getTotalCollection,
+    enabled: showCollection,
+  });
+
+  const { data: totalPromotions = [] } = useQuery({
+    queryKey: ["totalPromotions"],
+    queryFn: getTotalPromotions,
+    enabled: showPromotion,
   });
 
   const {
@@ -42,8 +70,6 @@ export default function PunchOut() {
     mutationFn: punchOut,
     onSuccess: () => {
       toast.success("Punch Out Successful!");
-      // React Query stores the result in cache
-      // After punching out, there is no active punch session anymore, so we update the cache
       queryClient.setQueryData(["punchSummary"], null);
       reset();
       navigate("/punchin", { replace: true });
@@ -52,7 +78,7 @@ export default function PunchOut() {
       toast.error(error.message);
     },
   });
-  
+
   const onSubmit = (data) => {
     if (checkinId) {
       toast.error("Please checkout from shop before punching out");
@@ -65,8 +91,8 @@ export default function PunchOut() {
       shops_pending: summary?.shopsPending ?? 0,
     });
   };
-  const [currentTime, setCurrentTime] = useState(new Date());
 
+  const [currentTime, setCurrentTime] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -79,90 +105,244 @@ export default function PunchOut() {
   if (isError) navigate("/punchin");
 
   return (
-    <Wrapper>
-      <Time>
-        Time :{" "}
-        {currentTime.toLocaleTimeString("en-IN", {
-          hour12: false,
-        })}
-      </Time>
+    <>
+      <Wrapper>
+        <Time>
+          Time :{" "}
+          {currentTime.toLocaleTimeString("en-IN", {
+            hour12: false,
+          })}
+        </Time>
 
-      <Card width="100rem">
-        <Form onSubmit={handleSubmit(onSubmit)}>
-          <Section>
-            <h2>Activity Summary</h2>
-            <Grid>
-              <GridItem>Entered Inventory</GridItem>
-              <GridItem>: {summary?.totalInventory}</GridItem>
-
-              <GridItem>Collected Cash</GridItem>
-              <GridItem>: {summary?.cashCollected} Rs</GridItem>
-
-              <GridItem>Promotion Given</GridItem>
-              <GridItem>: </GridItem>
-
-              <GridItem>Distance covered</GridItem>
-              <GridItem>: </GridItem>
-
-              <GridItem>Shops Visited</GridItem>
-              <GridItem>: {summary?.shopsVisited ?? 0}</GridItem>
-
-              <GridItem>Shops not visited</GridItem>
-              <GridItem>: {summary?.shopsPending ?? 0}</GridItem>
-            </Grid>
-          </Section>
-
-          {ownVehicle && (
+        <Card width="100rem">
+          <Form onSubmit={handleSubmit(onSubmit)}>
             <Section>
-              <Field>
-                <Label>Odometer Reading (KM)</Label>
-                <Input
-                  type="number"
-                  {...register("odometer", {
-                    required: "Odometer reading is required",
-                  })}
-                />
-                {errors.odometer && (
-                  <ErrorText>{errors.odometer.message}</ErrorText>
-                )}
-              </Field>
+              <h2>Activity Summary</h2>
+              <Grid>
+                <GridItem>Entered Inventory</GridItem>
+                <GridItem>
+                  :{" "}
+                  <ViewLink onClick={() => setShowInventory(true)}>
+                    Click to view Inventory (Own)
+                  </ViewLink>
+                </GridItem>
 
-              <Field>
-                <Label>Upload Image</Label>
+                <GridItem>Collected Cash</GridItem>
+                <GridItem>
+                  :{" "}
+                  <ViewLink onClick={() => setShowCollection(true)}>
+                    Click to view collection
+                  </ViewLink>
+                </GridItem>
 
-                <HiddenFileInput
-                  id="fileInput"
-                  type="file"
-                  accept="image/*"
-                  {...register("image", {
-                    required: "Image is required",
-                  })}
-                />
-
-                <UploadButton htmlFor="fileInput">
-                  {image?.length ? "Choose Another" : "Choose Image"}
-                </UploadButton>
-
-                {image?.length > 0 && <FileName>{image[0].name}</FileName>}
-
-                {errors.image && <ErrorText>{errors.image.message}</ErrorText>}
-              </Field>
+                <GridItem>Promotion Given</GridItem>
+                <GridItem>
+                  :{" "}
+                  <ViewLink onClick={() => setShowPromotion(true)}>
+                    Click to view promotion
+                  </ViewLink>
+                </GridItem>
+              </Grid>
             </Section>
-          )}
 
-          <ButtonWrapper>
-            <Button
-              type="submit"
-              variation="primary"
-              size="md"
-              disabled={ownVehicle ? !isValid : false}
-            >
-              Punch Out
-            </Button>
-          </ButtonWrapper>
-        </Form>
-      </Card>
-    </Wrapper>
+            {ownVehicle && (
+              <Section>
+                <Field>
+                  <Label>Odometer Reading (KM)</Label>
+                  <Input
+                    type="number"
+                    {...register("odometer", {
+                      required: "Odometer reading is required",
+                    })}
+                  />
+                  {errors.odometer && (
+                    <ErrorText>{errors.odometer.message}</ErrorText>
+                  )}
+                </Field>
+
+                <Field>
+                  <Label>Upload Image</Label>
+                  <HiddenFileInput
+                    id="fileInput"
+                    type="file"
+                    accept="image/*"
+                    {...register("image", {
+                      required: "Image is required",
+                    })}
+                  />
+
+                  <UploadButton htmlFor="fileInput">
+                    {image?.length ? "Choose Another" : "Choose Image"}
+                  </UploadButton>
+
+                  {image?.length > 0 && <FileName>{image[0].name}</FileName>}
+
+                  {errors.image && (
+                    <ErrorText>{errors.image.message}</ErrorText>
+                  )}
+                </Field>
+              </Section>
+            )}
+
+            <ButtonWrapper>
+              <Button
+                type="submit"
+                variation="primary"
+                size="md"
+                disabled={ownVehicle ? !isValid : false}
+              >
+                Punch Out
+              </Button>
+            </ButtonWrapper>
+          </Form>
+        </Card>
+      </Wrapper>
+
+      {showPromotion && (
+        <Modal title="Promotions" onClose={() => setShowPromotion(false)}>
+          {Object.entries(
+            totalPromotions.reduce((acc, item) => {
+              if (!acc[item.shop_name]) acc[item.shop_name] = [];
+              acc[item.shop_name].push(item);
+              return acc;
+            }, {}),
+          ).map(([shop, items], index) => (
+            <div key={shop}>
+              <b>
+                Checkin {index + 1} : {shop}
+              </b>
+
+              {items.map((p, idx) => (
+                <div key={idx} style={{ marginLeft: "1rem", marginTop: "8px" }}>
+                  <Row>
+                    <div>Brand</div>
+                    <div>: {p.brand}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Category</div>
+                    <div>: {p.category}</div>
+                  </Row>
+
+                  <Row>
+                    <div>SKU</div>
+                    <div>: {p.sku}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Scheme</div>
+                    <div>: {p.scheme}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Duration</div>
+                    <div>
+                      : {new Date(p.start_date).toLocaleDateString()} →{" "}
+                      {new Date(p.end_date).toLocaleDateString()}
+                    </div>
+                  </Row>
+                </div>
+              ))}
+            </div>
+          ))}
+        </Modal>
+      )}
+      {showInventory && (
+        <Modal
+          title="Entered Inventory"
+          onClose={() => setShowInventory(false)}
+        >
+          {Object.entries(
+            totalInventory.reduce((acc, item) => {
+              if (!acc[item.shop_name]) acc[item.shop_name] = [];
+              acc[item.shop_name].push(item);
+              return acc;
+            }, {}),
+          ).map(([shop, items], index) => (
+            <div key={shop}>
+              <b>
+                Checkin {index + 1} : {shop}
+              </b>
+
+              {items.map((i, idx) => (
+                <div key={idx} style={{ marginLeft: "1rem", marginTop: "8px" }}>
+                  <Row>
+                    <div>Product</div>
+                    <div>: {i.product_name}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Receipt</div>
+                    <div>: {i.receipt}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Cases Warm</div>
+                    <div>: {i.cases_warm}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Cases Cold</div>
+                    <div>: {i.cases_cold}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Bottles Warm</div>
+                    <div>: {i.bottles_warm}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Bottles Cold</div>
+                    <div>: {i.bottles_cold}</div>
+                  </Row>
+                </div>
+              ))}
+            </div>
+          ))}
+        </Modal>
+      )}
+      {showCollection && (
+        <Modal title="Collections" onClose={() => setShowCollection(false)}>
+          {Object.entries(
+            totalCollection.reduce((acc, item) => {
+              if (!acc[item.shop_name]) acc[item.shop_name] = [];
+              acc[item.shop_name].push(item);
+              return acc;
+            }, {}),
+          ).map(([shop, items], index) => (
+            <div key={shop}>
+              <b>
+                Checkin {index + 1} : {shop}
+              </b>
+
+              {items.map((c, idx) => (
+                <div key={idx} style={{ marginLeft: "1rem", marginTop: "8px" }}>
+                  <Row>
+                    <div>Invoice</div>
+                    <div>: {c.invoice_no}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Payment Mode</div>
+                    <div>: {c.payment_mode}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Amount</div>
+                    <div>: {c.amount}</div>
+                  </Row>
+
+                  <Row>
+                    <div>Remark</div>
+                    <div>: {c.remark}</div>
+                  </Row>
+                </div>
+              ))}
+            </div>
+          ))}
+        </Modal>
+      )}
+    </>
   );
 }
 
@@ -250,4 +430,17 @@ const Time = styled.div`
   font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 1.6rem;
+`;
+
+const ViewLink = styled.span`
+  color: var(--color-brown-600);
+  cursor: pointer;
+  text-decoration: underline;
+`;
+
+const Row = styled.div`
+  display: grid;
+  grid-template-columns: 160px auto;
+  gap: 8px;
+  font-size: 1.5rem;
 `;

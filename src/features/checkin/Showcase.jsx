@@ -36,18 +36,25 @@ export default function Showcase({ checkinId }) {
     mutationFn: saveShowcase,
     onSuccess: () => {
       toast.success("Saved successfully");
-      setSaved([])
+      setSaved([]);
+      setRows([{ ...emptyRow }]);
     },
     onError: (error) => toast.error(error.message),
-  })
+  });
 
-  const handleSaveToDB = () => {
-    const cleaned = saved.map(({ category, product }) => ({category, product}))
-    showcaseMutation.mutate({
-      checkinId,
-      items: cleaned
-    });
-  };
+const handleSaveToDB = () => {
+  if (showcaseMutation.isPending) return;   // prevent double click
+
+  const cleaned = saved.map(({ category, product }) => ({
+    category,
+    product,
+  }));
+
+  showcaseMutation.mutate({
+    checkinId,
+    items: cleaned,
+  });
+};
 
   return (
     <Wrapper>
@@ -76,8 +83,13 @@ export default function Showcase({ checkinId }) {
             <ShowcaseAddedTable saved={saved} setSaved={setSaved} />
 
             <Center>
-              <Button variation="primary" size="md" onClick={handleSaveToDB}>
-                Save
+              <Button
+                variation="primary"
+                size="md"
+                onClick={handleSaveToDB}
+                disabled={showcaseMutation.isPending}
+              >
+                {showcaseMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </Center>
           </Section>

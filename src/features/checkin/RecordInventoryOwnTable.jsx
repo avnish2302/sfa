@@ -16,11 +16,11 @@ export default function RecordInventoryOwnTable({ rows, setRows }) {
   });
 
   const emptyRow = {
-    receipt: "",
-    casesWarm: "",
-    casesCold: "",
-    bottlesWarm: "",
-    bottlesCold: "",
+    receipt: 0,
+    casesWarm: 0,
+    casesCold: 0,
+    bottlesWarm: 0,
+    bottlesCold: 0,
     product_id: "",
   };
 
@@ -121,6 +121,7 @@ export default function RecordInventoryOwnTable({ rows, setRows }) {
                     <Td key={field}>
                       <Input
                         type="number"
+                        min="0"
                         value={r[field]}
                         onChange={(e) => handleChange(i, field, e.target.value)}
                       />

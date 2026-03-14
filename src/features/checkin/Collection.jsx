@@ -4,9 +4,9 @@ import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
-import {saveCollection} from "../../services/apiCollection"
+import { saveCollection } from "../../services/apiCollection";
 
-export default function Collection({checkinId}) {
+export default function Collection({ checkinId }) {
   const {
     register,
     handleSubmit,
@@ -18,21 +18,20 @@ export default function Collection({checkinId}) {
   const file = watch("image");
 
   const collectionMutation = useMutation({
-    mutationFn : saveCollection,
-    onSuccess : () =>{
-      toast.success("Saved successfully"),
-      reset()
+    mutationFn: saveCollection,
+    onSuccess: () => {
+      (toast.success("Saved successfully"), reset());
     },
-    onError : (error) => toast.error(error.message)
-  })
+    onError: (error) => toast.error(error.message),
+  });
 
- const onSubmit = (data) => {
-  console.log(data, "checkin ID:",checkinId)
+  const onSubmit = (data) => {
+    console.log(data, "checkin ID:", checkinId);
     collectionMutation.mutate({
       checkinId,
-      data
-    })
-  }
+      data,
+    });
+  };
 
   return (
     <>
@@ -136,10 +135,10 @@ export default function Collection({checkinId}) {
             type="submit"
             variation="primary"
             size="md"
-            disabled={!isValid}
+            disabled={!isValid || collectionMutation.isPending}
             style={{ width: "100%" }}
           >
-            Save
+            {collectionMutation.isPending ? "Saving..." : "Save"}
           </Button>
         </Form>
       </Card>

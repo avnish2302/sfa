@@ -74,14 +74,14 @@ export default function Promotions({checkinId}) {
           />
 
           <Button
-            type="submit"
-            variation="primary"
-            size="md"
-            disabled={!isValid}
-            style={{ width: "100%" }}
-          >
-            Save
-          </Button>
+  type="submit"
+  variation="primary"
+  size="md"
+  disabled={!isValid || promotionsMutation.isPending}
+  style={{ width: "100%" }}
+>
+  {promotionsMutation.isPending ? "Saving..." : "Save"}
+</Button>
         </Form>
       </Card>
     </>

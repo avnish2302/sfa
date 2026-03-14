@@ -9,7 +9,7 @@ import Collection from "../features/checkin/Collection";
 import AssetAssignment from "../features/checkin/AssetAssignment";
 import Main from "../features/checkin/Main";
 import ShopName from "../components/ShopName";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { createCheckin } from "../services/apiCheckin";
 import Button from "../components/Button";
@@ -37,6 +37,9 @@ export default function CheckIn() {
     onError: (error) => {
       toast.error(error.message || "Punch-In required before Check_In");
     },
+    onSettled: () => {
+      clickLock.current = false;
+    },
   });
 
   const handleShopSelect = (shopId) => {
@@ -57,6 +60,8 @@ export default function CheckIn() {
     { key: "collection", label: "Collection" },
   ];
 
+  const clickLock = useRef(false);
+
   return (
     <Wrapper>
       <Title>Check-In</Title>
@@ -69,23 +74,28 @@ export default function CheckIn() {
         <Button
           variation="primary"
           size="md"
-          disabled={!selectedShop?.id || checkinMutation.isPending}
+          disabled={!selectedShop?.id || checkinMutation.isPending || checkinId}
           onClick={() => {
+            if (clickLock.current) return;
+
+            clickLock.current = true;
+
             if (checkinId) {
               toast.error("You are already checked in to a shop");
+              clickLock.current = false;
               return;
             }
+
             if (!navigator.geolocation) {
               toast.error("Geolocation not supported by your browser");
+              clickLock.current = false;
               return;
             }
+
             navigator.geolocation.getCurrentPosition(
               (position) => {
                 const latitude = position.coords.latitude;
                 const longitude = position.coords.longitude;
-
-                console.log("Latitude:", latitude);
-                console.log("Longitude:", longitude);
 
                 checkinMutation.mutate({
                   shop_id: selectedShop.id,
@@ -95,6 +105,7 @@ export default function CheckIn() {
               },
               (error) => {
                 toast.error("Unable to get location. Please enable GPS");
+                clickLock.current = false;
                 console.error(error);
               },
             );

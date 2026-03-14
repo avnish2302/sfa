@@ -122,58 +122,117 @@ export default function CheckOut() {
       </Wrapper>
 
       {showPromotion && (
-        <Modal
-          title="Promotions"
-          onClose={() => setShowPromotion(false)}
-          data={
-            promotions.length
-              ? {
-                  Party: promotions[0].party,
-                  Category: promotions[0].category,
-                  Brand: promotions[0].brand,
-                  SKU: promotions[0].sku,
-                  From: new Date(promotions[0].start_date).toLocaleDateString(),
-                  To: new Date(promotions[0].end_date).toLocaleDateString(),
-                  Scheme: promotions[0].scheme,
-                }
-              : { Info: "No Info" }
-          }
-        />
-      )}
-      {showInventory && (
-        <Modal
-          title="Entered Inventory"
-          onClose={() => setShowInventory(false)}
-          data={
-            inventory.length
-              ? inventory.reduce((acc, i) => {
-                  acc[`${i.product_name} - Receipt`] = i.receipt;
-                  acc[`${i.product_name} - Cases Warm`] = i.cases_warm;
-                  acc[`${i.product_name} - Cases Cold`] = i.cases_cold;
-                  acc[`${i.product_name} - Bottles Warm`] = i.bottles_warm;
-                  acc[`${i.product_name} - Bottles Cold`] = i.bottles_cold;
-                  return acc;
-                }, {})
-              : { Info: "No Info" }
-          }
-        />
-      )}
+  <Modal title="Promotions" onClose={() => setShowPromotion(false)}>
+    {promotions.length === 0 && <div>No Info</div>}
+
+    {promotions.map((p, index) => (
+      <div key={index}>
+        <Row>
+          <div>Party</div>
+          <div>: {p.party}</div>
+        </Row>
+
+        <Row>
+          <div>Category</div>
+          <div>: {p.category}</div>
+        </Row>
+
+        <Row>
+          <div>Brand</div>
+          <div>: {p.brand}</div>
+        </Row>
+
+        <Row>
+          <div>SKU</div>
+          <div>: {p.sku}</div>
+        </Row>
+
+        <Row>
+          <div>From</div>
+          <div>: {new Date(p.start_date).toLocaleDateString()}</div>
+        </Row>
+
+        <Row>
+          <div>To</div>
+          <div>: {new Date(p.end_date).toLocaleDateString()}</div>
+        </Row>
+
+        <Row>
+          <div>Scheme</div>
+          <div>: {p.scheme}</div>
+        </Row>
+      </div>
+    ))}
+  </Modal>
+)}
+     {showInventory && (
+  <Modal title="Entered Inventory" onClose={() => setShowInventory(false)}>
+    {inventory.length === 0 && <div>No Info</div>}
+
+    {inventory.map((i, index) => (
+      <div key={index}>
+        <Row>
+          <div>Product</div>
+          <div>: {i.product_name}</div>
+        </Row>
+
+        <Row>
+          <div>Receipt</div>
+          <div>: {i.receipt}</div>
+        </Row>
+
+        <Row>
+          <div>Cases Warm</div>
+          <div>: {i.cases_warm}</div>
+        </Row>
+
+        <Row>
+          <div>Cases Cold</div>
+          <div>: {i.cases_cold}</div>
+        </Row>
+
+        <Row>
+          <div>Bottles Warm</div>
+          <div>: {i.bottles_warm}</div>
+        </Row>
+
+        <Row>
+          <div>Bottles Cold</div>
+          <div>: {i.bottles_cold}</div>
+        </Row>
+      </div>
+    ))}
+  </Modal>
+)}
       {showCollection && (
-        <Modal
-          title="Collections"
-          onClose={() => setShowCollection(false)}
-          data={
-            collection.length
-              ? {
-                  Invoice: collection[0].invoice_no,
-                  Remarks: collection[0].remark,
-                  "Payment Mode": collection[0].payment_mode,
-                  Amount: collection[0].amount,
-                }
-              : { Info: "No Info" }
-          }
-        />
-      )}
+  <Modal title="Collections" onClose={() => setShowCollection(false)}>
+    {collection.length === 0 && <div>No Info</div>}
+
+    {collection.map((c) => (
+      <div key={c.id}>
+        <Row>
+          <div>Invoice</div>
+          <div>: {c.invoice_no}</div>
+        </Row>
+
+        <Row>
+          <div>Remark</div>
+          <div>: {c.remark}</div>
+        </Row>
+
+        <Row>
+          <div>Payment Mode</div>
+          <div>: {c.payment_mode}</div>
+        </Row>
+
+        <Row>
+          <div>Amount</div>
+          <div>: {c.amount}</div>
+        </Row>
+      </div>
+    ))}
+  </Modal>
+)}
     </>
   );
 }
@@ -230,4 +289,11 @@ const ViewLink = styled.span`
   color: var(--color-brown-600);
   cursor: pointer;
   text-decoration: underline;
+`;
+
+const Row = styled.div`
+  display: grid;
+  grid-template-columns: 160px auto;
+  gap: 8px;
+  font-size: 1.5rem;
 `;

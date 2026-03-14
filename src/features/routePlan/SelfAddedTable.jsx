@@ -48,9 +48,7 @@ export default function SelfAddedTable() {
 
   const handleDelete = (id) => {
     setRows((prev) =>
-      prev
-        .filter((r) => r.id !== id)
-        .map((r, i) => ({ ...r, id: i + 1 }))
+      prev.filter((r) => r.id !== id).map((r, i) => ({ ...r, id: i + 1 })),
     );
   };
 
@@ -68,18 +66,23 @@ export default function SelfAddedTable() {
       <Card width="100rem">
         <form onSubmit={handleSubmit(onSubmit)}>
           <Section>
-            <FormGroup>
-              <Label>Plan Date</Label>
-              <Input
-                type="date"
-                {...register("planDate", { required: true })}
-              />
-            </FormGroup>
+            <FormGrid>
+              <FormGroup>
+                <Label>Plan Date</Label>
+                <Input
+                  type="date"
+                  {...register("planDate", { required: true })}
+                />
+              </FormGroup>
 
-            <ShopName
-              selectedShop={selectedShop}
-              setSelectedShop={setSelectedShop}
-            />
+              <FormGroup>
+                <Label>Shop</Label>
+                <ShopName
+                  selectedShop={selectedShop}
+                  setSelectedShop={setSelectedShop}
+                />
+              </FormGroup>
+            </FormGrid>
 
             <Center>
               <Button
@@ -177,4 +180,10 @@ const Input = styled.input`
     outline: none;
     border-color: var(--color-brown-600);
   }
+`;
+
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
 `;
